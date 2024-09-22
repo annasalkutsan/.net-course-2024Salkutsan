@@ -11,25 +11,23 @@ namespace BankSystem.Domain.Models
     /// </summary>
     public class Client:Person
     {
-        /// <summary>
-        /// Серия паспорта
-        /// </summary>
-        public string PassportSeries { get; set; }
+        //поле серии и номера паспорта объединила просто в Passport
         
         /// <summary>
-        /// Номер паспорта
+        /// Данные паспорта
         /// </summary>
-        public string PassportNumber { get; set; }
+        public string Passport { get; set; }
         
         /// <summary>
         /// Дата регистрации в банке
         /// </summary>
         public DateTime RegistrationDate { get; set; }
 
-        public Client(string passportSeries, string passportNumber, DateTime registrationDate)
+        //дополнила конструктор Client
+        public Client(string passport, DateTime registrationDate, string firstName, string lastName, string phoneNumber, DateTime birthDay)
+            : base(firstName, lastName, phoneNumber, birthDay)
         {
-            PassportSeries = passportSeries;
-            PassportNumber = passportNumber;
+            Passport = passport;
             RegistrationDate = registrationDate;
         }
         

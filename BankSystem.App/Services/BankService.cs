@@ -14,6 +14,14 @@ public class BankService
     /// <exception cref="ArgumentException"></exception>
     public int CalculateOwnerSalary(int bankProfit, int bankExpenses, List<Person> owners)
     {
+        //Проверку оставляю, но выношу ее перед циклом, потому что в цикле она не имеет смысла.
+        //а в случае вычисления зарплаты может быть деление на 0, так что она нужна
+        
+        if (owners.Count == 0)
+        {
+            throw new ArgumentException("Количество владельцев не может быть равно нулю.");
+        }
+        
         foreach (var owner in owners)
         {
             if (owner is not Employee)
@@ -23,10 +31,6 @@ public class BankService
         }
         
         int totalProfit = bankProfit - bankExpenses;
-        if (owners.Count == 0)
-        {
-            throw new ArgumentException("Количество владельцев не может быть равно нулю.");
-        }
         
         int ownerSalary = totalProfit / owners.Count;
         return ownerSalary;
