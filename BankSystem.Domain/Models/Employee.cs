@@ -6,27 +6,20 @@ using System.Threading.Tasks;
 
 namespace BankSystem.Domain.Models
 {
-    /// <summary>
-    /// Класс "Сотрудник"
-    /// </summary>
     public class Employee:Person
     {
-        /// <summary>
-        /// Должность 
-        /// </summary>
         public string Position { get; set; }
-        
-        /// <summary>
-        /// Контракт 
-        /// </summary>
-        public string Contract {  get; set; }
+        public string Contract { get; set; }
+        public decimal Salary { get; set; } 
 
-        public Employee(string position, string contract)
+        public Employee(string position, string contract, decimal salary, string firstName, string lastName, string phoneNumber, DateTime birthDay)
+            : base(firstName, lastName, phoneNumber, birthDay)
         {
             Position = position;
             Contract = contract;
+            Salary = salary;
         }
-        
-        public Employee () { }
+
+        public Employee() { }
     }
 }
