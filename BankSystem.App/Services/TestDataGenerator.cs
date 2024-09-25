@@ -20,12 +20,8 @@ public class TestDataGenerator
 
     public Dictionary<string, Client> GenerateClientDictionary(List<Client> clients)
     {
-        var clientDictionary = new Dictionary<string, Client>();
-        foreach (var client in clients)
-        {
-            clientDictionary[client.PhoneNumber] = client;
-        }
-        return clientDictionary;
+        return clients.GroupBy(client => client.PhoneNumber)
+            .ToDictionary(group => group.Key, group => group.First());
     }
 
     public List<Employee> GenerateEmployees(int count)
