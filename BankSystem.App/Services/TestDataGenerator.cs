@@ -43,15 +43,10 @@ public class TestDataGenerator
             .RuleFor(a => a.Currency, f => new Currency(f.Finance.Currency().Code, f.Finance.Currency().Description))
             .RuleFor(a => a.Amount, f => f.Finance.Amount(100, 10000));
 
-        var clientAccounts = new Dictionary<Client, List<Account>>();
-
-        foreach (var client in clients)
-        {
-            int accountCount = new Random().Next(1, 4);
-            var accounts = accountFaker.Generate(accountCount);
-
-            clientAccounts[client] = accounts; 
-        }
+        var clientAccounts = clients.ToDictionary(
+            client => client,
+            client => accountFaker.Generate(new Random().Next(1, 4))
+        );
         
         return clientAccounts;
     }
