@@ -21,5 +21,22 @@ namespace BankSystem.Domain.Models
         }
 
         public Employee() { }
+        
+        public override bool Equals(object obj)
+        {
+            if (obj is Employee otherEmployee)
+            {
+                return FirstName == otherEmployee.FirstName &&
+                       LastName == otherEmployee.LastName &&
+                       PhoneNumber == otherEmployee.PhoneNumber &&
+                       Position == otherEmployee.Position;
+            }
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(FirstName, LastName, PhoneNumber, Position);
+        }
     }
 }

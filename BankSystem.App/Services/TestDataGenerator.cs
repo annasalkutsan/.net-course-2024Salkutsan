@@ -36,4 +36,19 @@ public class TestDataGenerator
             .RuleFor(e => e.Salary, f => f.Random.Number(1000, 50000));
         return employeeFaker.Generate(count);
     }
+    
+    public Dictionary<Client, List<Account>> GenerateClientAccounts(List<Client> clients)
+    {
+        var accountFaker = new Faker<Account>()
+            .RuleFor(a => a.Currency, f => new Currency(f.Finance.Currency().Code, f.Finance.Currency().Description))
+            .RuleFor(a => a.Amount, f => f.Finance.Amount(100, 10000));
+
+        var clientAccounts = clients.ToDictionary(
+            client => client,
+            client => accountFaker.Generate(new Random().Next(1, 4))
+        );
+        
+        return clientAccounts;
+    }
+
 }
