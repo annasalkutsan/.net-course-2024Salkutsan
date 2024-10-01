@@ -25,6 +25,16 @@ public class ClientStorageTests
 
         Assert.Single(_clientStorage.GetAllClients());
     }
+    
+    [Fact]
+    public void AddClientCollectionPositivTest()
+    {
+        var clients = _dataGenerator.GenerateClients(5);
+
+        _clientStorage.AddClient(clients);
+
+        Assert.Equal(5, _clientStorage.GetAllClients().Count);
+    }
 
     [Fact]
     public void GetYoungestClientPositivTest()

@@ -16,6 +16,11 @@ public class ClientStorage
         _clients.Add(client);
     }
 
+    public void AddClient(List<Client> clients)
+    {
+        _clients.AddRange(clients);
+    }
+    
     public Client GetYoungestClient()
     {
         return _clients.OrderBy(c => c.BirthDay).FirstOrDefault();

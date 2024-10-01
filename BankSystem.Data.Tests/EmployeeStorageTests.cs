@@ -26,6 +26,16 @@ public class EmployeeStorageTests
     }
 
     [Fact]
+    public void AddEmployeeCollectionPositivTest()
+    {
+        var employees = _dataGenerator.GenerateEmployees(5);
+
+        _employeeStorage.AddEmployee(employees);
+
+        Assert.Equal(5, _employeeStorage.GetAllEmployees().Count);
+    }
+    
+    [Fact]
     public void GetYoungestEmployeePositivTest()
     {
         var employees = _dataGenerator.GenerateEmployees(10);

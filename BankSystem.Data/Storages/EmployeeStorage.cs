@@ -16,6 +16,11 @@ public class EmployeeStorage
         _employees.Add(employee);
     }
 
+    public void AddEmployee(List<Employee> employees)
+    {
+        _employees.AddRange(employees);
+    }
+    
     public Employee GetYoungestEmployee()
     {
         return _employees.OrderBy(e => e.BirthDay).FirstOrDefault();
