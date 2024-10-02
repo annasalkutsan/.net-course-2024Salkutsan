@@ -39,8 +39,7 @@ public class EmployeeStorageTests
     public void GetYoungestEmployeePositivTest()
     {
         var employees = _dataGenerator.GenerateEmployees(10);
-        
-        employees.ForEach(employee=>_employeeStorage.AddEmployee(employee));
+        _employeeStorage.AddEmployee(employees);
 
         var youngestEmployee = _employeeStorage.GetYoungestEmployee();
         
@@ -52,7 +51,7 @@ public class EmployeeStorageTests
     public void GetOldestEmployeePositivTest()
     {
         var employees = _dataGenerator.GenerateEmployees(10);
-        employees.ForEach(employee=>_employeeStorage.AddEmployee(employee));
+        _employeeStorage.AddEmployee(employees);
 
         var oldestEmployee = _employeeStorage.GetOldestEmployee();
         
@@ -64,7 +63,7 @@ public class EmployeeStorageTests
     public void GetAverageAgePositivTest()
     {
         var employees = _dataGenerator.GenerateEmployees(10);
-        employees.ForEach(employee=>_employeeStorage.AddEmployee(employee));
+        _employeeStorage.AddEmployee(employees);
 
         var averageAge = _employeeStorage.GetAverageAgeEmployee();
         var expectedAverageAge = employees

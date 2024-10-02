@@ -43,6 +43,6 @@ public class EmployeeStorage
 
     public List<Employee> GetAllEmployees()
     {
-        return _employees;
+        return new List<Employee>(_employees);
     }
 }
