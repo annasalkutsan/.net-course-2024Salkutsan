@@ -40,7 +40,7 @@ public class ClientStorageTests
     public void GetYoungestClientPositivTest()
     {
         var clients = _dataGenerator.GenerateClients(10);
-        clients.ForEach(client=>_clientStorage.AddClient(client));
+        _clientStorage.AddClient(clients);
         
         var youngestClient = _clientStorage.GetYoungestClient();
 
@@ -52,7 +52,7 @@ public class ClientStorageTests
     public void GetOldestClientPositivTest()
     {
         var clients = _dataGenerator.GenerateClients(10);
-        clients.ForEach(client=>_clientStorage.AddClient(client));
+        _clientStorage.AddClient(clients);
 
         var oldestClient = _clientStorage.GetOldestClient();
 
@@ -64,7 +64,7 @@ public class ClientStorageTests
     public void GetAverageAgePositivTest()
     {
         var clients = _dataGenerator.GenerateClients(10);
-        clients.ForEach(client=>_clientStorage.AddClient(client));
+        _clientStorage.AddClient(clients);
         
         var averageAge = _clientStorage.GetAverageAgeClient();
         var expectedAverageAge = clients

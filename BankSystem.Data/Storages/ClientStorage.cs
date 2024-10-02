@@ -43,6 +43,6 @@ public class ClientStorage
 
     public List<Client> GetAllClients()
     {
-        return _clients;
+        return new List<Client>(_clients);
     }
 }
