@@ -15,7 +15,7 @@ public class ClientStorageTests
         _clientStorage = new ClientStorage();
         _dataGenerator = new TestDataGenerator();
     }
-
+    
     [Fact]
     public void AddClientPositivTest()
     {
