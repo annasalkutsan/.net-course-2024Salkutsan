@@ -21,7 +21,7 @@ public class ClientServiceTests
     }
 
     [Fact]
-    public void AddClient_PositiveTest()
+    public void AddClientPositiveTest()
     {
         var client = _dataGenerator.GenerateClients(1).First();
         _clientStorageMock.Setup(storage => storage.AddClient(client));
@@ -32,7 +32,7 @@ public class ClientServiceTests
     }
 
     [Fact]
-    public void AddClient_NegativeTest_AgeException()
+    public void AddClientNegativeTestAgeException()
     {
         var client = new Client
         {
@@ -44,7 +44,7 @@ public class ClientServiceTests
     }
 
     [Fact]
-    public void AddClient_NegativeTest_PassportException()
+    public void AddClientNegativeTestPassportException()
     {
         var client = new Client
         {
@@ -56,7 +56,7 @@ public class ClientServiceTests
     }
 
     [Fact]
-    public void AddClientWithAccounts_PositiveTest()
+    public void AddClientWithAccountsPositiveTest()
     {
         var client = _dataGenerator.GenerateClients(1).First();
         var accounts = _dataGenerator.GenerateClientAccounts(new List<Client> { client })[client];
@@ -69,7 +69,7 @@ public class ClientServiceTests
     }
 
     [Fact]
-    public void AddClients_PositiveTest()
+    public void AddClientsPositiveTest()
     {
         var clients = _dataGenerator.GenerateClients(5);
         var clientAccounts = _dataGenerator.GenerateClientAccounts(clients);
@@ -82,7 +82,7 @@ public class ClientServiceTests
     }
 
     [Fact]
-    public void AddClients_NegativeTest_AgeException()
+    public void AddClientsNegativeTestAgeException()
     {
         var clients = new Dictionary<Client, List<Account>>
         {
@@ -93,7 +93,7 @@ public class ClientServiceTests
     }
 
     [Fact]
-    public void AddClients_NegativeTest_PassportException()
+    public void AddClientsNegativeTestPassportException()
     {
         var clients = new Dictionary<Client, List<Account>>
         {
@@ -104,7 +104,7 @@ public class ClientServiceTests
     }
 
     [Fact]
-    public void AddAccountToClient_PositiveTest()
+    public void AddAccountToClientPositiveTest()
     {
         var client = _dataGenerator.GenerateClients(1).First();
         var account = new Account();
@@ -117,7 +117,7 @@ public class ClientServiceTests
     }
 
     [Fact]
-    public void AddAccountToClient_NegativeTest_NullAccount()
+    public void AddAccountToClientNegativeTestNullAccount()
     {
         var client = _dataGenerator.GenerateClients(1).First();
 
@@ -125,7 +125,7 @@ public class ClientServiceTests
     }
 
     [Fact]
-    public void RemoveClient_PositiveTest()
+    public void RemoveClientPositiveTest()
     {
         var client = _dataGenerator.GenerateClients(1).First();
         _clientStorageMock.Setup(storage => storage.RemoveClient(client));
@@ -136,13 +136,13 @@ public class ClientServiceTests
     }
 
     [Fact]
-    public void RemoveClient_NegativeTest_NullClient()
+    public void RemoveClientNegativeTestNullClient()
     {
         Assert.Throws<ArgumentNullException>(() => _clientService.RemoveClient(null));
     }
 
     [Fact]
-    public void EditClient_PositiveTest()
+    public void EditClientPositiveTest()
     {
         var oldClient = _dataGenerator.GenerateClients(1).First();
         var newClient = _dataGenerator.GenerateClients(1).First();
@@ -155,7 +155,7 @@ public class ClientServiceTests
     }
 
     [Fact]
-    public void EditClient_NegativeTest_AgeException()
+    public void EditClientNegativeTestAgeException()
     {
         var newClient = new Client { BirthDay = DateTime.Now.AddYears(-17) };
 
@@ -163,7 +163,7 @@ public class ClientServiceTests
     }
 
     [Fact]
-    public void EditClient_NegativeTest_PassportException()
+    public void EditClientNegativeTestPassportException()
     {
         var newClient = new Client { BirthDay = DateTime.Now.AddYears(-20), Passport = null };
 
@@ -171,7 +171,7 @@ public class ClientServiceTests
     }
 
     [Fact]
-    public void EditAccount_PositiveTest()
+    public void EditAccountPositiveTest()
     {
         var client = _dataGenerator.GenerateClients(1).First();
         var oldAccount = new Account { Currency = new Currency("USD", "US Dollar"), Amount = 100 };
@@ -185,7 +185,7 @@ public class ClientServiceTests
     }
 
     [Fact]
-    public void GetClientsByFilter_PositiveTest()
+    public void GetClientsByFilterPositiveTest()
     {
         var clients = _dataGenerator.GenerateClients(5);
         _clientStorageMock.Setup(storage => storage.GetClientsByFilter(null, null, null, null, null))
@@ -197,7 +197,7 @@ public class ClientServiceTests
     }
 
     [Fact]
-    public void GetAllClients_PositiveTest()
+    public void GetAllClientsPositiveTest()
     {
         var clients = _dataGenerator.GenerateClients(5);
         _clientStorageMock.Setup(storage => storage.GetAllClients())

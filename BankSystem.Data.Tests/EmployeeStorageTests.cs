@@ -1,5 +1,6 @@
 ﻿using BankSystem.App.Services;
 using BankSystem.Data.Storages;
+using BankSystem.Domain.Models;
 using Xunit;
 
 namespace BankSystem.Data.Tests;
@@ -71,5 +72,54 @@ public class EmployeeStorageTests
             .Average();
         
         Assert.Equal(expectedAverageAge, averageAge, 1);
+    }
+    
+    [Fact]
+    public void EditEmployee_PositiveTest()
+    {
+        var employee = _dataGenerator.GenerateEmployees(1)[0];
+        _employeeStorage.AddEmployee(employee);
+
+        var newEmployee = new Employee
+        {
+            FirstName = employee.FirstName,
+            LastName = "Обновленный", 
+            PhoneNumber = "1234567890",
+            Position = "Менеджер", 
+            BirthDay = employee.BirthDay, 
+            Contract = employee.Contract,
+            Salary = employee.Salary
+        };
+
+        _employeeStorage.EditEmployee(employee, newEmployee);
+        
+        var employees = _employeeStorage.GetAllEmployees();
+        Assert.Single(employees); 
+        Assert.Equal(newEmployee.LastName, employees[0].LastName); 
+    }
+
+    [Fact]
+    public void EditEmployee_NullOldEmployee_ThrowsArgumentNullException()
+    {
+        var newEmployee = new Employee(); 
+       
+        Assert.Throws<ArgumentNullException>(() => _employeeStorage.EditEmployee(null, newEmployee));
+    }
+    
+    [Fact]
+    public void RemoveEmployees_PositiveTest()
+    {
+        var employees = _dataGenerator.GenerateEmployees(3);
+        _employeeStorage.AddEmployee(employees);
+        
+        _employeeStorage.RemoveEmployees(employees);
+
+        Assert.Empty(_employeeStorage.GetAllEmployees());
+    }
+
+    [Fact]
+    public void RemoveEmployees_EmptyList_ThrowsArgumentNullException()
+    {
+        Assert.Throws<ArgumentNullException>(() => _employeeStorage.RemoveEmployees(new List<Employee>()));
     }
 }

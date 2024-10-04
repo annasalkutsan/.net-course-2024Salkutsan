@@ -80,7 +80,7 @@ public class ClientService
 
         if (oldAccount.Currency != newAccount.Currency) 
         {
-            throw new InvalidOperationException("Изменение валюты счета невозможно.");
+            throw new AccountEditException();
         }
 
         oldAccount.Amount = newAccount.Amount;
