@@ -74,15 +74,23 @@ public class ClientStorage
         }
     }
 
-    public virtual List<Client> GetClientsByFilter(string fullName = null, string phoneNumber = null, string passport = null, DateTime? birthStart = null, DateTime? birthEnd = null)
+    public virtual Dictionary<Client, List<Account>> GetClientsByFilter(
+        string lastName = null, 
+        string phoneNumber = null, 
+        string passport = null, 
+        DateTime? birthStart = null, 
+        DateTime? birthEnd = null)
     {
-        return _clientAccounts.Keys.Where(client =>
-            (string.IsNullOrEmpty(fullName) || $"{client.FirstName} {client.LastName}".Contains(fullName)) &&
-            (string.IsNullOrEmpty(phoneNumber) || client.PhoneNumber.Contains(phoneNumber)) &&
-            (string.IsNullOrEmpty(passport) || client.Passport.Contains(passport)) &&
-            (!birthStart.HasValue || client.BirthDay >= birthStart.Value) &&
-            (!birthEnd.HasValue || client.BirthDay <= birthEnd.Value)).ToList();
+        return _clientAccounts
+            .Where(kvp => 
+                (string.IsNullOrEmpty(lastName) || kvp.Key.LastName.Contains(lastName)) &&  
+                (string.IsNullOrEmpty(phoneNumber) || kvp.Key.PhoneNumber.Contains(phoneNumber)) &&
+                (string.IsNullOrEmpty(passport) || kvp.Key.Passport.Contains(passport)) &&
+                (!birthStart.HasValue || kvp.Key.BirthDay >= birthStart.Value) &&
+                (!birthEnd.HasValue || kvp.Key.BirthDay <= birthEnd.Value))
+            .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);  
     }
+
 
     public virtual Client GetYoungestClient()
     {

@@ -188,13 +188,16 @@ public class ClientServiceTests
     public void GetClientsByFilterPositiveTest()
     {
         var clients = _dataGenerator.GenerateClients(5);
+        var clientAccounts = _dataGenerator.GenerateClientAccounts(clients);
+    
         _clientStorageMock.Setup(storage => storage.GetClientsByFilter(null, null, null, null, null))
-            .Returns(clients);
+            .Returns(clientAccounts);
 
         var result = _clientService.GetClientsByFilter();
 
         Assert.Equal(5, result.Count);
     }
+
 
     [Fact]
     public void GetAllClientsPositiveTest()

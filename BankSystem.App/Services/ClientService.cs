@@ -127,9 +127,14 @@ public class ClientService
         _clientStorage.RemoveAccountFromClient(client, account); 
     }
 
-    public List<Client> GetClientsByFilter(string fullName = null, string phoneNumber = null, string passport = null, DateTime? birthStart = null, DateTime? birthEnd = null)
+    public Dictionary<Client, List<Account>> GetClientsByFilter(
+        string lastName = null, 
+        string phoneNumber = null, 
+        string passport = null, 
+        DateTime? birthStart = null, 
+        DateTime? birthEnd = null)
     {
-        return _clientStorage.GetClientsByFilter(fullName, phoneNumber, passport, birthStart, birthEnd);
+        return _clientStorage.GetClientsByFilter(lastName, phoneNumber, passport, birthStart, birthEnd);
     }
 
     public List<Client> GetAllClients()
