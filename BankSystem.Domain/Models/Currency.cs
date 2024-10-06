@@ -16,5 +16,28 @@ namespace BankSystem.Domain.Models
             Code = code;
             Name = name;
         }
+        public static bool operator ==(Currency left, Currency right)
+        {
+            return left.Code == right.Code;
+        }
+
+        public static bool operator !=(Currency left, Currency right)
+        {
+            return !(left == right);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is Currency other)
+            {
+                return Code == other.Code && Name == other.Name;
+            }
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return Code.GetHashCode(); 
+        }
     }
 }

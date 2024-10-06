@@ -15,13 +15,14 @@ public class ClientStorageTests
         _clientStorage = new ClientStorage();
         _dataGenerator = new TestDataGenerator();
     }
-
+    
     [Fact]
     public void AddClientPositivTest()
     {
-        var client = _dataGenerator.GenerateClients(1);
+        var client = _dataGenerator.GenerateClients(1).First();
+        var accounts = _dataGenerator.GenerateClientAccounts(new List<Client> { client })[client];
 
-        _clientStorage.AddClient(client[0]);
+        _clientStorage.AddClient(client, accounts);
 
         Assert.Single(_clientStorage.GetAllClients());
     }
@@ -30,8 +31,9 @@ public class ClientStorageTests
     public void AddClientCollectionPositivTest()
     {
         var clients = _dataGenerator.GenerateClients(5);
+        var clientAccounts = _dataGenerator.GenerateClientAccounts(clients);
 
-        _clientStorage.AddClient(clients);
+        _clientStorage.AddClients(clientAccounts);
 
         Assert.Equal(5, _clientStorage.GetAllClients().Count);
     }
@@ -40,7 +42,8 @@ public class ClientStorageTests
     public void GetYoungestClientPositivTest()
     {
         var clients = _dataGenerator.GenerateClients(10);
-        _clientStorage.AddClient(clients);
+        var clientAccounts = _dataGenerator.GenerateClientAccounts(clients);
+        _clientStorage.AddClients(clientAccounts);
         
         var youngestClient = _clientStorage.GetYoungestClient();
 
@@ -52,7 +55,8 @@ public class ClientStorageTests
     public void GetOldestClientPositivTest()
     {
         var clients = _dataGenerator.GenerateClients(10);
-        _clientStorage.AddClient(clients);
+        var clientAccounts = _dataGenerator.GenerateClientAccounts(clients);
+        _clientStorage.AddClients(clientAccounts);
 
         var oldestClient = _clientStorage.GetOldestClient();
 
@@ -64,7 +68,8 @@ public class ClientStorageTests
     public void GetAverageAgePositivTest()
     {
         var clients = _dataGenerator.GenerateClients(10);
-        _clientStorage.AddClient(clients);
+        var clientAccounts = _dataGenerator.GenerateClientAccounts(clients);
+        _clientStorage.AddClients(clientAccounts);
         
         var averageAge = _clientStorage.GetAverageAgeClient();
         var expectedAverageAge = clients
@@ -73,4 +78,46 @@ public class ClientStorageTests
 
         Assert.Equal(expectedAverageAge, averageAge, 1);
     }
+    
+    [Fact]
+    public void GetAllClientsPositivTest()
+    {
+        var clients = _dataGenerator.GenerateClients(5);
+        var clientAccounts = _dataGenerator.GenerateClientAccounts(clients);
+        _clientStorage.AddClients(clientAccounts);
+
+        var allClients = _clientStorage.GetAllClients();
+
+        Assert.Equal(5, allClients.Count);
+        foreach (var client in clients)
+        {
+            Assert.Contains(client, allClients);
+        }
+    }
+
+    [Fact]
+    public void GetClientAccountsPositivTest()
+    {
+        var client = _dataGenerator.GenerateClients(1).First();
+        var accounts = _dataGenerator.GenerateClientAccounts(new List<Client> { client })[client];
+
+        _clientStorage.AddClient(client, accounts);
+
+        var clientAccounts = _clientStorage.GetClientAccounts(client);
+
+        Assert.NotNull(clientAccounts);
+        Assert.Equal(accounts.Count, clientAccounts.Count);
+        Assert.Equal(accounts, clientAccounts);
+    }
+
+    [Fact]
+    public void GetClientAccountsReturnsEmptyListForUnknownClient()
+    {
+        var unknownClient = new Client { Passport = "UNKNOWN" };
+        var clientAccounts = _clientStorage.GetClientAccounts(unknownClient);
+
+        Assert.NotNull(clientAccounts);
+        Assert.Empty(clientAccounts);
+    }
+
 }

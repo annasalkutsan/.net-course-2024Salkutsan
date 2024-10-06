@@ -14,9 +14,10 @@ public class TestDataGenerator
             .RuleFor(c => c.PhoneNumber, f => $"+373 777 55 {f.Random.Number(100, 999)}")
             .RuleFor(c => c.Passport, f => $"{f.Random.AlphaNumeric(2).ToUpper()}{f.Random.Number(100000, 999999)}")
             .RuleFor(c => c.RegistrationDate, f => f.Date.Past(10))
-            .RuleFor(c => c.BirthDay, f => f.Date.Past(18));
+            .RuleFor(c => c.BirthDay, f => f.Date.Past(18, DateTime.Now.AddYears(-18))); // Генерация даты, соответствующей условию
         return clientFaker.Generate(count);
     }
+
 
     public Dictionary<string, Client> GenerateClientDictionary(List<Client> clients)
     {
