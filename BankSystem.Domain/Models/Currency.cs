@@ -23,13 +23,13 @@
     {
         if (obj is Currency other)
         {
-            return Code == other.Code && Name == other.Name;
+            return Code == other.Code;
         }
         return false;
     }
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(Code, Name);
+        return HashCode.Combine(Code);
     }
 }

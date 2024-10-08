@@ -22,7 +22,7 @@ namespace BankSystem.Data.Storages
             _employees.Add(item);
         }
         
-        public void Add(List<Employee> items)
+        public void AddCollection(List<Employee> items)
         {
             _employees.AddRange(items);
         }

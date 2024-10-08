@@ -27,17 +27,17 @@ namespace BankSystem.App.Services
             _employeeStorage.Add(employee);
         }
 
-        public void Add(List<Employee> employees)
+        public void AddCollection(List<Employee> employees)
         {
             if (employees == null || employees.Count == 0)
                 throw new ArgumentException("Список сотрудников не может быть пустым.", nameof(employees));
 
             foreach (var employee in employees)
             {
-                ValidateEmployee(employee);
+                ValidateEmployee(employee); 
             }
 
-            _employeeStorage.Add(employees);
+            _employeeStorage.AddCollection(employees); 
         }
 
         public void Update(Employee employee)

@@ -36,12 +36,11 @@ namespace BankSystem.App.Services
 
         public void Add(Dictionary<Client, List<Account>> clients)
         {
-            foreach (var client in clients)
+            foreach (var client in clients.Keys)
             {
-                ValidateClient(client.Key);
+                ValidateClient(client); 
             }
-
-            _clientStorage.Add(clients);
+            _clientStorage.AddDictionary(clients);
         }
         
         public void Update(Client updatedClient)

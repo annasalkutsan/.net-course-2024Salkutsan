@@ -10,18 +10,19 @@
     }
 
     public Account() { }
-
+    
+    
     public override bool Equals(object obj)
     {
         if (obj is Account other)
         {
-            return Currency.Equals(other.Currency) && Amount == other.Amount;
+            return Currency.Equals(other.Currency);
         }
         return false;
     }
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(Currency, Amount);
+        return HashCode.Combine(Currency);
     }
 }

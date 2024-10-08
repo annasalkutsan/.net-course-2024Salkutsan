@@ -26,17 +26,14 @@ namespace BankSystem.Domain.Models
         {
             if (obj is Employee otherEmployee)
             {
-                return FirstName == otherEmployee.FirstName &&
-                       LastName == otherEmployee.LastName &&
-                       PhoneNumber == otherEmployee.PhoneNumber &&
-                       Position == otherEmployee.Position;
+                return PhoneNumber == otherEmployee.PhoneNumber;
             }
             return false;
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(FirstName, LastName, PhoneNumber, Position);
+            return HashCode.Combine(PhoneNumber);
         }
     }
 }

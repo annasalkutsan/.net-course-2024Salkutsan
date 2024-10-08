@@ -24,17 +24,14 @@ namespace BankSystem.Domain.Models
         {
             if (obj is Client otherClient)
             {
-                return Passport == otherClient.Passport &&
-                       FirstName == otherClient.FirstName &&
-                       LastName == otherClient.LastName &&
-                       PhoneNumber == otherClient.PhoneNumber;
+                return Passport == otherClient.Passport;
             }
             return false;
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Passport, FirstName, LastName, PhoneNumber);
+            return HashCode.Combine(Passport);
         }
     }
 }

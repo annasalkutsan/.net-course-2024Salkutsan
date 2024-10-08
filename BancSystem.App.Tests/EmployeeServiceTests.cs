@@ -34,7 +34,7 @@ namespace BankSystem.App.Tests
         public void AddEmployeesPositiveTest()
         {
             var employees = _dataGenerator.GenerateEmployees(3);
-            _employeeService.Add(employees);
+            _employeeService.AddCollection(employees);
             var allEmployees = _employeeService.GetEmployeesByFilter();
             Assert.Equal(3, allEmployees.Count);
         }
@@ -43,7 +43,7 @@ namespace BankSystem.App.Tests
         public void GetEmployeesByFilterReturnsFilteredEmployeesPositiveTest()
         {
             var employees = _dataGenerator.GenerateEmployees(5);
-            _employeeService.Add(employees);
+            _employeeService.AddCollection(employees);
             var filteredEmployees = _employeeService.GetEmployeesByFilter(lastName: employees[0].LastName);
             Assert.Single(filteredEmployees);
             Assert.Equal(employees[0].LastName, filteredEmployees[0].LastName);
@@ -82,7 +82,7 @@ namespace BankSystem.App.Tests
         public void RemoveEmployeesPositiveTest()
         {
             var employees = _dataGenerator.GenerateEmployees(3);
-            _employeeService.Add(employees);
+            _employeeService.AddCollection(employees);
             foreach (var employee in employees)
             {
                 _employeeService.Delete(employee);

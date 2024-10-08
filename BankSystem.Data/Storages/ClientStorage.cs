@@ -29,26 +29,19 @@ namespace BankSystem.Data.Storages
             _clientAccounts[client] = new List<Account> { defaultAccount };
         }
 
-        public void Add<TKey, TValue>(Dictionary<TKey, TValue> clients)
+        public void AddDictionary(Dictionary<Client, List<Account>> clients)
         {
-            if (clients is Dictionary<Client, List<Account>> clientAccounts)
+            foreach (var client in clients)
             {
-                foreach (var client in clientAccounts)
+                if (client.Value == null || !client.Value.Any())
                 {
-                    if (client.Value == null || !client.Value.Any())
-                    {
-                        var defaultAccount = new Account(new Currency("USD", "Доллар США"), 0);
-                        _clientAccounts[client.Key] = new List<Account> { defaultAccount };
-                    }
-                    else
-                    {
-                        _clientAccounts[client.Key] = client.Value;
-                    }
+                    var defaultAccount = new Account(new Currency("USD", "Доллар США"), 0);
+                    _clientAccounts[client.Key] = new List<Account> { defaultAccount };
                 }
-            }
-            else
-            {
-                throw new ArgumentException("Неверный тип словаря. Ожидался Dictionary<Client, List<Account>>.");
+                else
+                {
+                    _clientAccounts[client.Key] = client.Value;
+                }
             }
         }
 
@@ -82,17 +75,22 @@ namespace BankSystem.Data.Storages
             }
         }
 
-        public void UpdateAccount(Client client, Account account)
+        public void UpdateAccount(Client client, Account updatedAccount)
         {
-            if (_clientAccounts.TryGetValue(client, out var accounts))
+            var existingAccounts = _clientAccounts[client];
+    
+            var existingAccount = existingAccounts.FirstOrDefault(a => a.Currency.Code == updatedAccount.Currency.Code);
+
+            if (existingAccount != null)
             {
-                var index = accounts.IndexOf(account);
-                if (index != -1)
-                {
-                    accounts[index] = account;
-                }
+                existingAccount.Amount = updatedAccount.Amount;
+            }
+            else
+            {
+                throw new InvalidOperationException("Аккаунт не найден для обновления.");
             }
         }
+
 
         public void DeleteAccount(Client client, Account account)
         {
