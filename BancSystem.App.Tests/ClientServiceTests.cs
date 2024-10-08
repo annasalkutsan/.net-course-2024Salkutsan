@@ -1,213 +1,193 @@
 ﻿using BankSystem.App.Exceptions;
+using BankSystem.App.Interfaces;
 using BankSystem.App.Services;
 using BankSystem.Data.Storages;
 using BankSystem.Domain.Models;
-using Moq;
 using Xunit;
 
-namespace BancSystem.App.Tests;
-
-public class ClientServiceTests
+namespace BankSystem.App.Tests
 {
-    private readonly Mock<ClientStorage> _clientStorageMock;
-    private readonly ClientService _clientService;
-    private readonly TestDataGenerator _dataGenerator;
-
-    public ClientServiceTests()
+    public class ClientServiceTests
     {
-        _clientStorageMock = new Mock<ClientStorage>();
-        _clientService = new ClientService(_clientStorageMock.Object);
-        _dataGenerator = new TestDataGenerator();
-    }
+        private readonly IClientStorage _clientStorage;
+        private readonly ClientService _clientService;
+        private readonly TestDataGenerator _dataGenerator;
 
-    [Fact]
-    public void AddClientPositiveTest()
-    {
-        var client = _dataGenerator.GenerateClients(1).First();
-        _clientStorageMock.Setup(storage => storage.AddClient(client));
-
-        _clientService.AddClient(client);
-
-        _clientStorageMock.Verify(storage => storage.AddClient(client), Times.Once);
-    }
-
-    [Fact]
-    public void AddClientNegativeTestAgeException()
-    {
-        var client = new Client
+        public ClientServiceTests()
         {
-            BirthDay = DateTime.Now.AddYears(-17), 
-            Passport = "AB123456"
-        };
+            _clientStorage = new ClientStorage();
+            _clientService = new ClientService(_clientStorage);
+            _dataGenerator = new TestDataGenerator();
+        }
 
-        Assert.Throws<AgeException>(() => _clientService.AddClient(client));
-    }
-
-    [Fact]
-    public void AddClientNegativeTestPassportException()
-    {
-        var client = new Client
+        [Fact]
+        public void AddClientPositiveTest()
         {
-            BirthDay = DateTime.Now.AddYears(-20), 
-            Passport = null
-        };
+            var client = _dataGenerator.GenerateClients(1).First();
+            _clientService.Add(client);
+            var allClients = _clientStorage.Get(c => true);
+            Assert.Single(allClients);
+            Assert.Equal(client, allClients.First().Key);
+        }
 
-        Assert.Throws<PassportException>(() => _clientService.AddClient(client));
-    }
-
-    [Fact]
-    public void AddClientWithAccountsPositiveTest()
-    {
-        var client = _dataGenerator.GenerateClients(1).First();
-        var accounts = _dataGenerator.GenerateClientAccounts(new List<Client> { client })[client];
-
-        _clientStorageMock.Setup(storage => storage.AddClient(client, accounts));
-
-        _clientService.AddClient(client, accounts);
-
-        _clientStorageMock.Verify(storage => storage.AddClient(client, accounts), Times.Once);
-    }
-
-    [Fact]
-    public void AddClientsPositiveTest()
-    {
-        var clients = _dataGenerator.GenerateClients(5);
-        var clientAccounts = _dataGenerator.GenerateClientAccounts(clients);
-
-        _clientStorageMock.Setup(storage => storage.AddClients(clientAccounts));
-
-        _clientService.AddClients(clientAccounts);
-
-        _clientStorageMock.Verify(storage => storage.AddClients(clientAccounts), Times.Once);
-    }
-
-    [Fact]
-    public void AddClientsNegativeTestAgeException()
-    {
-        var clients = new Dictionary<Client, List<Account>>
+        [Fact]
+        public void AddClientNegativeTestAgeException()
         {
-            { new Client { BirthDay = DateTime.Now.AddYears(-17), Passport = "AB123456" }, new List<Account>() }
-        };
+            var client = new Client
+            {
+                BirthDay = DateTime.Now.AddYears(-17),
+                Passport = "AB123456"
+            };
+            Assert.Throws<AgeException>(() => _clientService.Add(client));
+        }
 
-        Assert.Throws<AgeException>(() => _clientService.AddClients(clients));
-    }
-
-    [Fact]
-    public void AddClientsNegativeTestPassportException()
-    {
-        var clients = new Dictionary<Client, List<Account>>
+        [Fact]
+        public void AddClientNegativeTestPassportException()
         {
-            { new Client { BirthDay = DateTime.Now.AddYears(-20), Passport = null }, new List<Account>() }
-        };
+            var client = new Client
+            {
+                BirthDay = DateTime.Now.AddYears(-20),
+                Passport = null
+            };
+            Assert.Throws<PassportException>(() => _clientService.Add(client));
+        }
 
-        Assert.Throws<PassportException>(() => _clientService.AddClients(clients));
-    }
+        [Fact]
+        public void AddClientsPositiveTest()
+        {
+            var clients = _dataGenerator.GenerateClients(5);
+            var clientAccounts = _dataGenerator.GenerateClientAccounts(clients);
+            _clientService.Add(clientAccounts);
+            var allClients = _clientStorage.Get(c => true);
+            Assert.Equal(5, allClients.Count);
+        }
 
-    [Fact]
-    public void AddAccountToClientPositiveTest()
-    {
-        var client = _dataGenerator.GenerateClients(1).First();
-        var account = new Account();
+        [Fact]
+        public void AddClientsNegativeTestAgeException()
+        {
+            var clients = new Dictionary<Client, List<Account>>
+            {
+                { new Client { BirthDay = DateTime.Now.AddYears(-17), Passport = "AB123456" }, new List<Account>() }
+            };
+            Assert.Throws<AgeException>(() => _clientService.Add(clients));
+        }
 
-        _clientStorageMock.Setup(storage => storage.AddAccountToClient(client, account));
+        [Fact]
+        public void AddClientsNegativeTestPassportException()
+        {
+            var clients = new Dictionary<Client, List<Account>>
+            {
+                { new Client { BirthDay = DateTime.Now.AddYears(-20), Passport = null }, new List<Account>() }
+            };
+            Assert.Throws<PassportException>(() => _clientService.Add(clients));
+        }
 
-        _clientService.AddAccountToClient(client, account);
+        [Fact]
+        public void AddAccountToClientPositiveTest()
+        {
+            var client = _dataGenerator.GenerateClients(1).First();
+            var account = new Account();
+            _clientService.Add(client);
+            var clientAccounts = _clientStorage.Get(c => c == client).First().Value;
+            Assert.Single(clientAccounts);
+        }
 
-        _clientStorageMock.Verify(storage => storage.AddAccountToClient(client, account), Times.Once);
-    }
+        [Fact]
+        public void AddAccountToClientNegativeTestNullAccount()
+        {
+            var client = _dataGenerator.GenerateClients(1).First();
+            Assert.Throws<ArgumentNullException>(() => _clientService.AddAccount(client, null));
+        }
 
-    [Fact]
-    public void AddAccountToClientNegativeTestNullAccount()
-    {
-        var client = _dataGenerator.GenerateClients(1).First();
+        [Fact]
+        public void RemoveClientPositiveTest()
+        {
+            var client = _dataGenerator.GenerateClients(1).First();
+            _clientService.Add(client);
+            _clientService.Delete(client);
+            var allClients = _clientStorage.Get(c => true);
+            Assert.Empty(allClients);
+        }
 
-        Assert.Throws<ArgumentNullException>(() => _clientService.AddAccountToClient(client, null));
-    }
+        [Fact]
+        public void RemoveClientNegativeTestNullClient()
+        {
+            Assert.Throws<ArgumentNullException>(() => _clientService.Delete(null));
+        }
 
-    [Fact]
-    public void RemoveClientPositiveTest()
-    {
-        var client = _dataGenerator.GenerateClients(1).First();
-        _clientStorageMock.Setup(storage => storage.RemoveClient(client));
+        [Fact]
+        public void EditClientNegativeTestAgeException()
+        {
+            var newClient = new Client { BirthDay = DateTime.Now.AddYears(-17) };
+            Assert.Throws<AgeException>(() => _clientService.Update(newClient));
+        }
 
-        _clientService.RemoveClient(client);
+        [Fact]
+        public void EditClientNegativeTestPassportException()
+        {
+            var newClient = new Client { BirthDay = DateTime.Now.AddYears(-20), Passport = null };
+            Assert.Throws<PassportException>(() => _clientService.Update(newClient));
+        }
 
-        _clientStorageMock.Verify(storage => storage.RemoveClient(client), Times.Once);
-    }
+        [Fact]
+        public void GetClientsByFilterPositiveTest()
+        {
+            var clients = _dataGenerator.GenerateClients(5);
+            foreach (var client in clients)
+            {
+                _clientService.Add(client);
+            }
+            var result = _clientService.GetClientsByFilter();
+            Assert.Equal(5, result.Count);
+        }
 
-    [Fact]
-    public void RemoveClientNegativeTestNullClient()
-    {
-        Assert.Throws<ArgumentNullException>(() => _clientService.RemoveClient(null));
-    }
+        [Fact]
+        public void GetAllClientsPositiveTest()
+        {
+            var clients = _dataGenerator.GenerateClients(5);
+            foreach (var client in clients)
+            {
+                _clientService.Add(client);
+            }
+            var result = _clientStorage.Get(c => true);
+            Assert.Equal(5, result.Count);
+        }
+        
+        
+        [Fact]
+        public void UpdateAccountPositiveTest()
+        {
+            var client = _dataGenerator.GenerateClients(1).First();
+            _clientService.Add(client);
+            
+            var updatedAccount = new Account
+            {
+                Currency = new Currency("USD", "US Dollar"),
+                Amount = 1500 
+            };
 
-    [Fact]
-    public void EditClientPositiveTest()
-    {
-        var oldClient = _dataGenerator.GenerateClients(1).First();
-        var newClient = _dataGenerator.GenerateClients(1).First();
+            _clientService.UpdateAccount(client, updatedAccount);
 
-        _clientStorageMock.Setup(storage => storage.EditClient(oldClient, newClient));
+            var clientAccounts = _clientStorage.Get(c => c == client).First().Value;
+            
+            Assert.Equal(updatedAccount.Currency.Code, clientAccounts.First().Currency.Code);
+        }
+        
+        [Fact]
+        public void DeleteAccountPositiveTest()
+        {
+            var client = _dataGenerator.GenerateClients(1).First();
+            var account = new Account();
+            _clientService.Add(client);
 
-        _clientService.EditClient(oldClient, newClient);
+            _clientService.AddAccount(client, account);
 
-        _clientStorageMock.Verify(storage => storage.EditClient(oldClient, newClient), Times.Once);
-    }
+            _clientService.DeleteAccount(client, account);
 
-    [Fact]
-    public void EditClientNegativeTestAgeException()
-    {
-        var newClient = new Client { BirthDay = DateTime.Now.AddYears(-17) };
-
-        Assert.Throws<AgeException>(() => _clientService.EditClient(new Client(), newClient));
-    }
-
-    [Fact]
-    public void EditClientNegativeTestPassportException()
-    {
-        var newClient = new Client { BirthDay = DateTime.Now.AddYears(-20), Passport = null };
-
-        Assert.Throws<PassportException>(() => _clientService.EditClient(new Client(), newClient));
-    }
-
-    [Fact]
-    public void EditAccountPositiveTest()
-    {
-        var client = _dataGenerator.GenerateClients(1).First();
-        var oldAccount = new Account { Currency = new Currency("USD", "US Dollar"), Amount = 100 };
-        var newAccount = new Account { Currency = new Currency("USD", "US Dollar"), Amount = 200 };
-
-        _clientStorageMock.Setup(storage => storage.EditAccount(client, oldAccount, newAccount));
-
-        _clientService.EditAccount(client, oldAccount, newAccount);
-
-        _clientStorageMock.Verify(storage => storage.EditAccount(client, oldAccount, newAccount), Times.Once);
-    }
-
-    [Fact]
-    public void GetClientsByFilterPositiveTest()
-    {
-        var clients = _dataGenerator.GenerateClients(5);
-        var clientAccounts = _dataGenerator.GenerateClientAccounts(clients);
-    
-        _clientStorageMock.Setup(storage => storage.GetClientsByFilter(null, null, null, null, null))
-            .Returns(clientAccounts);
-
-        var result = _clientService.GetClientsByFilter();
-
-        Assert.Equal(5, result.Count);
-    }
+            var clientAccountsAfterDelete = _clientStorage.Get(c => c == client).First().Value;
+            Assert.Single(clientAccountsAfterDelete);
+        }
 
 
-    [Fact]
-    public void GetAllClientsPositiveTest()
-    {
-        var clients = _dataGenerator.GenerateClients(5);
-        _clientStorageMock.Setup(storage => storage.GetAllClients())
-            .Returns(clients);
-
-        var result = _clientService.GetAllClients();
-
-        Assert.Equal(5, result.Count);
     }
 }

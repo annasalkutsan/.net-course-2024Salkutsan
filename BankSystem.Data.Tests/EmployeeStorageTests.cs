@@ -2,124 +2,144 @@
 using BankSystem.Data.Storages;
 using BankSystem.Domain.Models;
 using Xunit;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace BankSystem.Data.Tests;
-
-public class EmployeeStorageTests
+namespace BankSystem.Data.Tests
 {
-    private readonly EmployeeStorage _employeeStorage;
-    private readonly TestDataGenerator _dataGenerator;
-
-    public EmployeeStorageTests()
+    public class EmployeeStorageTests
     {
-        _employeeStorage = new EmployeeStorage();
-        _dataGenerator = new TestDataGenerator();
-    }
+        private readonly EmployeeStorage _employeeStorage;
+        private readonly TestDataGenerator _dataGenerator;
 
-    [Fact]
-    public void AddEmployeePositivTest()
-    {
-        var employee = _dataGenerator.GenerateEmployees(1);
-        
-        _employeeStorage.AddEmployee(employee[0]);
-        
-        Assert.Single(_employeeStorage.GetAllEmployees());
-    }
-
-    [Fact]
-    public void AddEmployeeCollectionPositivTest()
-    {
-        var employees = _dataGenerator.GenerateEmployees(5);
-
-        _employeeStorage.AddEmployee(employees);
-
-        Assert.Equal(5, _employeeStorage.GetAllEmployees().Count);
-    }
-    
-    [Fact]
-    public void GetYoungestEmployeePositivTest()
-    {
-        var employees = _dataGenerator.GenerateEmployees(10);
-        _employeeStorage.AddEmployee(employees);
-
-        var youngestEmployee = _employeeStorage.GetYoungestEmployee();
-        
-        Assert.NotNull(youngestEmployee);
-        Assert.Equal(employees.OrderBy(c => c.BirthDay).First(), youngestEmployee);
-    }
-
-    [Fact]
-    public void GetOldestEmployeePositivTest()
-    {
-        var employees = _dataGenerator.GenerateEmployees(10);
-        _employeeStorage.AddEmployee(employees);
-
-        var oldestEmployee = _employeeStorage.GetOldestEmployee();
-        
-        Assert.NotNull(oldestEmployee);
-        Assert.Equal(employees.OrderByDescending(c => c.BirthDay).First(), oldestEmployee);
-    }
-
-    [Fact]
-    public void GetAverageAgePositivTest()
-    {
-        var employees = _dataGenerator.GenerateEmployees(10);
-        _employeeStorage.AddEmployee(employees);
-
-        var averageAge = _employeeStorage.GetAverageAgeEmployee();
-        var expectedAverageAge = employees
-            .Select(e=>DateTime.Now.Year - e.BirthDay.Year - (DateTime.Now.DayOfYear < e.BirthDay.DayOfYear ? 1 : 0))
-            .Average();
-        
-        Assert.Equal(expectedAverageAge, averageAge, 1);
-    }
-    
-    [Fact]
-    public void EditEmployee_PositiveTest()
-    {
-        var employee = _dataGenerator.GenerateEmployees(1)[0];
-        _employeeStorage.AddEmployee(employee);
-
-        var newEmployee = new Employee
+        public EmployeeStorageTests()
         {
-            FirstName = employee.FirstName,
-            LastName = "Обновленный", 
-            PhoneNumber = "1234567890",
-            Position = "Менеджер", 
-            BirthDay = employee.BirthDay, 
-            Contract = employee.Contract,
-            Salary = employee.Salary
-        };
+            _employeeStorage = new EmployeeStorage();
+            _dataGenerator = new TestDataGenerator();
+        }
 
-        _employeeStorage.EditEmployee(employee, newEmployee);
-        
-        var employees = _employeeStorage.GetAllEmployees();
-        Assert.Single(employees); 
-        Assert.Equal(newEmployee.LastName, employees[0].LastName); 
-    }
+        [Fact]
+        public void AddEmployee_PositiveTest()
+        {
+            var employee = _dataGenerator.GenerateEmployees(1).First();
 
-    [Fact]
-    public void EditEmployee_NullOldEmployee_ThrowsArgumentNullException()
-    {
-        var newEmployee = new Employee(); 
-       
-        Assert.Throws<ArgumentNullException>(() => _employeeStorage.EditEmployee(null, newEmployee));
-    }
-    
-    [Fact]
-    public void RemoveEmployees_PositiveTest()
-    {
-        var employees = _dataGenerator.GenerateEmployees(3);
-        _employeeStorage.AddEmployee(employees);
-        
-        _employeeStorage.RemoveEmployees(employees);
+            _employeeStorage.Add(employee);
 
-        Assert.Empty(_employeeStorage.GetAllEmployees());
-    }
+            Assert.Single(_employeeStorage.Get(e => true));
+        }
 
-    [Fact]
-    public void RemoveEmployees_EmptyList_ThrowsArgumentNullException()
-    {
-        Assert.Throws<ArgumentNullException>(() => _employeeStorage.RemoveEmployees(new List<Employee>()));
+        [Fact]
+        public void AddEmployeeCollection_PositiveTest()
+        {
+            var employees = _dataGenerator.GenerateEmployees(5);
+
+            _employeeStorage.Add(employees);
+
+            Assert.Equal(5, _employeeStorage.Get(e => true).Count);
+        }
+
+        [Fact]
+        public void GetYoungestEmployee_PositiveTest()
+        {
+            var employees = _dataGenerator.GenerateEmployees(10);
+            _employeeStorage.Add(employees);
+
+            var youngestEmployee = _employeeStorage.GetYoungestEmployee();
+
+            Assert.NotNull(youngestEmployee);
+            Assert.Equal(employees.OrderBy(c => c.BirthDay).First(), youngestEmployee);
+        }
+
+        [Fact]
+        public void GetOldestEmployee_PositiveTest()
+        {
+            var employees = _dataGenerator.GenerateEmployees(10);
+            _employeeStorage.Add(employees);
+
+            var oldestEmployee = _employeeStorage.GetOldestEmployee();
+
+            Assert.NotNull(oldestEmployee);
+            Assert.Equal(employees.OrderByDescending(c => c.BirthDay).First(), oldestEmployee);
+        }
+
+        [Fact]
+        public void GetAverageAge_PositiveTest()
+        {
+            var employees = _dataGenerator.GenerateEmployees(10);
+            _employeeStorage.Add(employees);
+
+            var averageAge = _employeeStorage.GetAverageAgeEmployee();
+            var expectedAverageAge = employees
+                .Select(e => DateTime.Now.Year - e.BirthDay.Year - (DateTime.Now.DayOfYear < e.BirthDay.DayOfYear ? 1 : 0))
+                .Average();
+
+            Assert.Equal(expectedAverageAge, averageAge, 1);
+        }
+
+        [Fact]
+        public void UpdateEmployee_PositiveTest()
+        {
+            // Arrange: создаем и добавляем сотрудника
+            var employee = new Employee
+            {
+                FirstName = "Иван",
+                LastName = "Иванов",
+                PhoneNumber = "1234567890",
+                Position = "Менеджер",
+                BirthDay = new DateTime(1990, 1, 1),
+                Contract = "Договор 1",
+                Salary = 50000
+            };
+
+            _employeeStorage.Add(employee);
+
+            // Создаем обновленного сотрудника
+            var updatedEmployee = new Employee
+            {
+                FirstName = employee.FirstName,
+                LastName = "Обновленный", // изменяем фамилию для обновления
+                PhoneNumber = employee.PhoneNumber,
+                Position = employee.Position,
+                BirthDay = employee.BirthDay,
+                Contract = employee.Contract,
+                Salary = employee.Salary
+            };
+
+            // Act: обновляем сотрудника
+            _employeeStorage.Update(updatedEmployee);
+
+            // Assert: проверяем, что сотрудник был обновлен
+            var employees = _employeeStorage.Get(e => true);
+            Assert.Equal(updatedEmployee.LastName, employees[0].LastName);
+            Assert.Equal(updatedEmployee.PhoneNumber, employees[0].PhoneNumber);
+        }
+
+        [Fact]
+        public void UpdateEmployee_EmployeeNotFound_ThrowsInvalidOperationException()
+        {
+            var employee = new Employee(); 
+            
+            Assert.Throws<InvalidOperationException>(() => _employeeStorage.Update(employee));
+        }
+
+        [Fact]
+        public void RemoveEmployees_PositiveTest()
+        {
+            var employees = _dataGenerator.GenerateEmployees(3);
+            _employeeStorage.Add(employees);
+            
+            _employeeStorage.Delete(employees.First());
+
+            Assert.Equal(2, _employeeStorage.Get(e => true).Count);
+        }
+
+        [Fact]
+        public void RemoveEmployee_EmployeeNotFound_ThrowsInvalidOperationException()
+        {
+            var employee = new Employee(); 
+            
+            Assert.Throws<InvalidOperationException>(() => _employeeStorage.Delete(employee));
+        }
     }
 }
