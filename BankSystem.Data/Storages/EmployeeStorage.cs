@@ -29,19 +29,14 @@ namespace BankSystem.Data.Storages
 
         public void Update(Employee item)
         {
-            var existingEmployee = _employees.FirstOrDefault(e => e.PhoneNumber == item.PhoneNumber);
+            var existingEmployee = _employees.FirstOrDefault(e=>e.Equals(item));
             if (existingEmployee == null)
             {
                 throw new InvalidOperationException("Сотрудник не найден в списке.");
             }
-
-            existingEmployee.FirstName = item.FirstName;
-            existingEmployee.LastName = item.LastName;
-            existingEmployee.PhoneNumber = item.PhoneNumber;
-            existingEmployee.Position = item.Position;
-            existingEmployee.BirthDay = item.BirthDay;
-            existingEmployee.Contract = item.Contract;
-            existingEmployee.Salary = item.Salary;
+            typeof(Employee).GetProperties()
+                .ToList()
+                .ForEach(p => p.SetValue(existingEmployee, p.GetValue(item)));
         }
 
         public void Delete(Employee item)

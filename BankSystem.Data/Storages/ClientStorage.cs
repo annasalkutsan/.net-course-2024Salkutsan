@@ -47,13 +47,13 @@ namespace BankSystem.Data.Storages
 
         public void Update(Client updatedClient)
         {
-            var existingClient = _clientAccounts.Keys.FirstOrDefault(c => c.Passport == updatedClient.Passport);
-            if (existingClient != null)
+            if (_clientAccounts.TryGetValue(updatedClient, out var existingAccounts))
             {
-                var accounts = _clientAccounts[existingClient]
+                var accounts = existingAccounts
                     .Select(account => new Account(account.Currency, account.Amount))
                     .ToList();
-                _clientAccounts.Remove(existingClient);
+        
+                _clientAccounts.Remove(updatedClient); 
                 _clientAccounts[updatedClient] = accounts;
             }
             else
@@ -78,9 +78,9 @@ namespace BankSystem.Data.Storages
         public void UpdateAccount(Client client, Account updatedAccount)
         {
             var existingAccounts = _clientAccounts[client];
-    
-            var existingAccount = existingAccounts.FirstOrDefault(a => a.Currency.Code == updatedAccount.Currency.Code);
-
+            
+            var existingAccount = existingAccounts.FirstOrDefault(a => a.Equals(updatedAccount));
+            
             if (existingAccount != null)
             {
                 existingAccount.Amount = updatedAccount.Amount;
