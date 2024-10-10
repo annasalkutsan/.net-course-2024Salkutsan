@@ -1,123 +1,133 @@
-﻿using BankSystem.Domain.Models;
+﻿using BankSystem.App.Interfaces;
+using BankSystem.Domain.Models;
 
-namespace BankSystem.Data.Storages;
-
-public class ClientStorage
+namespace BankSystem.Data.Storages
 {
-    private Dictionary<Client, List<Account>> _clientAccounts;
+    public class ClientStorage : IClientStorage
+    {
+        private Dictionary<Client, List<Account>> _clientAccounts;
 
-    public ClientStorage()
-    {
-        _clientAccounts = new Dictionary<Client, List<Account>>();
-    }
-    
-    public virtual void AddClient(Client client)
-    {
-        // дефолтный долларовый лицевой счет
-        var defaultAccount = new Account(new Currency("USD", "Доллар США"), 0);
-        _clientAccounts[client] = new List<Account> { defaultAccount };
-    }
-
-    public virtual void AddClient(Client client, List<Account> accounts)
-    {
-        _clientAccounts[client] = accounts;
-    }
-    
-    public virtual void AddClients(Dictionary<Client, List<Account>> clients)
-    {
-        foreach (var client in clients)
+        public ClientStorage()
         {
-            _clientAccounts[client.Key] = client.Value;
+            _clientAccounts = new Dictionary<Client, List<Account>>();
         }
-    }
 
-    public virtual void AddAccountToClient(Client client, Account account)
-    {
-        if (_clientAccounts.ContainsKey(client))
+        public Dictionary<Client, List<Account>> Get(Func<Client, bool> filter)
         {
-            _clientAccounts[client].Add(account);
+            return _clientAccounts
+                .Where(kvp => filter(kvp.Key))
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
         }
-    }
 
-    public virtual void EditAccount(Client client, Account oldAccount, Account newAccount)
-    {
-        if (_clientAccounts.TryGetValue(client, out var accounts))
+        public void Add(Client client)
         {
-            var index = accounts.IndexOf(oldAccount);
-            if (index != -1)
+            if (_clientAccounts.ContainsKey(client))
             {
-                accounts[index] = newAccount;
+                throw new InvalidOperationException("Клиент уже существует в хранилище.");
+            }
+            var defaultAccount = new Account(new Currency("USD", "Доллар США"), 0);
+            _clientAccounts[client] = new List<Account> { defaultAccount };
+        }
+
+        public void AddDictionary(Dictionary<Client, List<Account>> clients)
+        {
+            foreach (var client in clients)
+            {
+                if (client.Value == null || !client.Value.Any())
+                {
+                    var defaultAccount = new Account(new Currency("USD", "Доллар США"), 0);
+                    _clientAccounts[client.Key] = new List<Account> { defaultAccount };
+                }
+                else
+                {
+                    _clientAccounts[client.Key] = client.Value;
+                }
             }
         }
-    }
 
-    public virtual void EditClient(Client oldClient, Client newClient)
-    {
-        if (_clientAccounts.ContainsKey(oldClient))
+        public void Update(Client updatedClient)
         {
-            var accounts = _clientAccounts[oldClient];
-            _clientAccounts.Remove(oldClient);
-            _clientAccounts[newClient] = accounts;
+            if (_clientAccounts.TryGetValue(updatedClient, out var existingAccounts))
+            {
+                var accounts = existingAccounts
+                    .Select(account => new Account(account.Currency, account.Amount))
+                    .ToList();
+        
+                _clientAccounts.Remove(updatedClient); 
+                _clientAccounts[updatedClient] = accounts;
+            }
+            else
+            {
+                throw new KeyNotFoundException("Клиент с указанным паспортом не найден.");
+            }
         }
-    }
 
-    public virtual void RemoveClient(Client client)
-    {
-        _clientAccounts.Remove(client);
-    }
-    
-    public virtual void RemoveAccountFromClient(Client client, Account account)
-    {
-        if (_clientAccounts.TryGetValue(client, out var accounts))
+        public void Delete(Client client)
         {
-            accounts.Remove(account);
+            _clientAccounts.Remove(client);
         }
-    }
 
-    public virtual Dictionary<Client, List<Account>> GetClientsByFilter(
-        string lastName = null, 
-        string phoneNumber = null, 
-        string passport = null, 
-        DateTime? birthStart = null, 
-        DateTime? birthEnd = null)
-    {
-        return _clientAccounts
-            .Where(kvp => 
-                (string.IsNullOrEmpty(lastName) || kvp.Key.LastName.Contains(lastName)) &&  
-                (string.IsNullOrEmpty(phoneNumber) || kvp.Key.PhoneNumber.Contains(phoneNumber)) &&
-                (string.IsNullOrEmpty(passport) || kvp.Key.Passport.Contains(passport)) &&
-                (!birthStart.HasValue || kvp.Key.BirthDay >= birthStart.Value) &&
-                (!birthEnd.HasValue || kvp.Key.BirthDay <= birthEnd.Value))
-            .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);  
-    }
+        public void AddAccount(Client client, Account account)
+        {
+            if (_clientAccounts.ContainsKey(client))
+            {
+                _clientAccounts[client].Add(account);
+            }
+        }
+
+        public void UpdateAccount(Client client, Account updatedAccount)
+        {
+            var existingAccounts = _clientAccounts[client];
+            
+            var existingAccount = existingAccounts.FirstOrDefault(a => a.Equals(updatedAccount));
+            
+            if (existingAccount != null)
+            {
+                existingAccount.Amount = updatedAccount.Amount;
+            }
+            else
+            {
+                throw new InvalidOperationException("Аккаунт не найден для обновления.");
+            }
+        }
 
 
-    public virtual Client GetYoungestClient()
-    {
-        return _clientAccounts.Keys.OrderBy(c => c.BirthDay).FirstOrDefault();
-    }
+        public void DeleteAccount(Client client, Account account)
+        {
+            if (_clientAccounts.ContainsKey(client))
+            {
+                var accounts = _clientAccounts[client];
+                accounts.Remove(account); 
+            }
+        }
 
-    public virtual Client GetOldestClient()
-    {
-        return _clientAccounts.Keys.OrderByDescending(c => c.BirthDay).FirstOrDefault();
-    }
+        public Client GetYoungestClient()
+        {
+            return _clientAccounts.Keys.OrderBy(c => c.BirthDay).FirstOrDefault();
+        }
 
-    public virtual double GetAverageAgeClient()
-    {
-        return _clientAccounts.Any()
-            ? _clientAccounts.Keys
-                .Select(c => DateTime.Now.Year - c.BirthDay.Year - (DateTime.Now.DayOfYear < c.BirthDay.DayOfYear ? 1 : 0))
-                .Average()
-            : 0;
-    }
-    
-    public virtual List<Client> GetAllClients()
-    {
-        return _clientAccounts.Keys.ToList();
-    }
+        public Client GetOldestClient()
+        {
+            return _clientAccounts.Keys.OrderByDescending(c => c.BirthDay).FirstOrDefault();
+        }
 
-    public virtual List<Account> GetClientAccounts(Client client)
-    {
-        return _clientAccounts.TryGetValue(client, out var accounts) ? accounts : new List<Account>();
+        public double GetAverageAgeClient()
+        {
+            return _clientAccounts.Any()
+                ? _clientAccounts.Keys
+                    .Select(c => DateTime.Now.Year - c.BirthDay.Year - (DateTime.Now.DayOfYear < c.BirthDay.DayOfYear ? 1 : 0))
+                    .Average()
+                : 0;
+        }
+
+        public List<Client> GetAllClients()
+        {
+            return _clientAccounts.Keys.ToList();
+        }
+
+        public List<Account> GetClientAccounts(Client client)
+        {
+            return _clientAccounts.TryGetValue(client, out var accounts) ? accounts : new List<Account>();
+        }
     }
 }

@@ -1,6 +1,4 @@
-﻿namespace BankSystem.Domain.Models;
-
-public class Account
+﻿public class Account
 {
     public Currency Currency { get; set; }
     public decimal Amount { get; set; }
@@ -10,5 +8,21 @@ public class Account
         Currency = currency;
         Amount = amount;
     }
-    public Account () { }
+
+    public Account() { }
+    
+    
+    public override bool Equals(object obj)
+    {
+        if (obj is Account other)
+        {
+            return Currency.Equals(other.Currency);
+        }
+        return false;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Currency);
+    }
 }
