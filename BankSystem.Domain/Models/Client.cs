@@ -9,13 +9,12 @@ namespace BankSystem.Domain.Models
     public class Client:Person
     {
         public string Passport { get; set; }
-        public DateTime RegistrationDate { get; set; }
+        public ICollection<Account> Accounts { get; set; } = new List<Account>();
         
-        public Client(string passport, DateTime registrationDate, string firstName, string lastName, string phoneNumber, DateTime birthDay)
+        public Client(string passport, string firstName, string lastName, string phoneNumber, DateTime birthDay)
             : base(firstName, lastName, phoneNumber, birthDay)
         {
             Passport = passport;
-            RegistrationDate = registrationDate;
         }
         
         public Client() { }

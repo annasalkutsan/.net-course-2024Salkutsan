@@ -1,23 +1,17 @@
-﻿public struct Currency
+﻿public class Currency
 {
+    public Guid Id { get; set; }
     public string Code { get; set; }
     public string Name { get; set; }
-
+    public ICollection<Account> Accounts { get; set; } = new List<Account>();
+    public DateTime CreateUtc { get; set; } = DateTime.UtcNow;
+    
     public Currency(string code, string name)
     {
         Code = code;
         Name = name;
     }
-
-    public static bool operator ==(Currency left, Currency right)
-    {
-        return left.Equals(right);
-    }
-
-    public static bool operator !=(Currency left, Currency right)
-    {
-        return !(left == right);
-    }
+    public Currency () {}
 
     public override bool Equals(object obj)
     {
