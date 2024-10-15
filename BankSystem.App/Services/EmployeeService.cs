@@ -12,55 +12,73 @@ namespace BankSystem.App.Services
         {
             _employeeStorage = employeeStorage;
         }
-        
-        public List<Employee> GetEmployeesByFilter(string lastName = null, string phoneNumber = null, string position = null)
+
+        public Employee GetEmployee(Guid id)
         {
-            return _employeeStorage.Get(e =>
-                (string.IsNullOrWhiteSpace(lastName) || e.LastName.Contains(lastName, StringComparison.OrdinalIgnoreCase)) &&
-                (string.IsNullOrWhiteSpace(phoneNumber) || e.PhoneNumber.Contains(phoneNumber)) &&
-                (string.IsNullOrWhiteSpace(position) || e.Position.Contains(position, StringComparison.OrdinalIgnoreCase)));
+            var employee = _employeeStorage.Get(id);
+            if (employee == null)
+            {
+                throw new KeyNotFoundException("Сотрудник не найден.");
+            }
+            return employee;
         }
-        
-        public void Add(Employee employee)
+
+        public ICollection<Employee> GetAllEmployees()
+        {
+            return _employeeStorage.GetAll();
+        }
+
+        public void AddEmployee(Employee employee)
         {
             ValidateEmployee(employee);
             _employeeStorage.Add(employee);
         }
 
-        public void AddCollection(List<Employee> employees)
-        {
-            if (employees == null || employees.Count == 0)
-                throw new ArgumentException("Список сотрудников не может быть пустым.", nameof(employees));
-
-            foreach (var employee in employees)
-            {
-                ValidateEmployee(employee); 
-            }
-
-            _employeeStorage.AddCollection(employees); 
-        }
-
-        public void Update(Employee employee)
+        public void UpdateEmployee(Employee employee)
         {
             ValidateEmployee(employee);
             _employeeStorage.Update(employee);
         }
 
-        public void Delete(Employee employee)
+        public void DeleteEmployee(Employee employee)
         {
-            if (employee == null)
-                throw new ArgumentNullException(nameof(employee), "Сотрудник не может быть нулевым.");
-
             _employeeStorage.Delete(employee);
         }
 
+        public ICollection<Employee> GetEmployeesByFilter(
+            string lastName = null, 
+            string phoneNumber = null, 
+            string positionName = null,
+            int pageNumber = 1, // номер страницы
+            int pageSize = 10)  // количество записей на странице
+        {
+            // все сотрудники по фильтру
+            var query = _employeeStorage.GetByFilter(e =>
+                (string.IsNullOrWhiteSpace(lastName) || e.LastName.Contains(lastName, StringComparison.OrdinalIgnoreCase)) &&
+                (string.IsNullOrWhiteSpace(phoneNumber) || e.PhoneNumber.Contains(phoneNumber)) &&
+                (string.IsNullOrWhiteSpace(positionName) || (e.Position != null && e.Position.Title.Contains(positionName, StringComparison.OrdinalIgnoreCase))));
+
+            // пагинация
+            return query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+        }
+
+        
         private void ValidateEmployee(Employee employee)
         {
-            if (string.IsNullOrWhiteSpace(employee.Position))
-                throw new PositionException();
+            if (employee == null)
+            {
+                throw new ArgumentNullException(nameof(employee), "Сотрудник не может быть нулевым.");
+            }
 
             if (string.IsNullOrWhiteSpace(employee.PhoneNumber))
+            {
                 throw new PhoneNumberException();
+            }
+
+            if (_employeeStorage.GetAll().Any(e => e.Equals(employee) && e.Id != employee.Id))
+            {
+                throw new InvalidOperationException("Сотрудник с таким номером телефона уже существует.");
+            }
         }
     }
 }

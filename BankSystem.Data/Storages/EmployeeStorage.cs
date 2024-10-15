@@ -1,69 +1,79 @@
 ﻿using BankSystem.Domain.Models;
 using BankSystem.App.Interfaces;
+using BankSystem.Data.EntityConfigurations;
 
 namespace BankSystem.Data.Storages
 {
     public class EmployeeStorage : IEmployeeStorage
     {
-        private List<Employee> _employees;
+        private readonly BankSystemDbContext _context;
 
-        public EmployeeStorage()
+        public EmployeeStorage(BankSystemDbContext context)
         {
-            _employees = new List<Employee>();
+            _context = context;
         }
 
-        public List<Employee> Get(Func<Employee, bool> filter)
+        public Employee Get(Guid id)
         {
-            return _employees.Where(filter).ToList();
+            return _context.Employees.Find(id);
+        }
+
+        public ICollection<Employee> GetAll()
+        {
+            return _context.Employees.ToList();
         }
 
         public void Add(Employee item)
         {
-            _employees.Add(item);
-        }
-        
-        public void AddCollection(List<Employee> items)
-        {
-            _employees.AddRange(items);
+            if (_context.Employees.Any(e => e.Equals(item)))
+            {
+                throw new InvalidOperationException("Сотрудник с таким номером телефона уже существует.");
+            }
+
+            _context.Employees.Add(item);
+            _context.SaveChanges();
         }
 
         public void Update(Employee item)
         {
-            var existingEmployee = _employees.FirstOrDefault(e=>e.Equals(item));
+            var existingEmployee = Get(item.Id);
             if (existingEmployee == null)
             {
-                throw new InvalidOperationException("Сотрудник не найден в списке.");
+                throw new KeyNotFoundException("Сотрудник не найден.");
             }
-            typeof(Employee).GetProperties()
-                .ToList()
-                .ForEach(p => p.SetValue(existingEmployee, p.GetValue(item)));
+
+            existingEmployee.Contract = item.Contract;
+            existingEmployee.Salary = item.Salary;
+            existingEmployee.FirstName = item.FirstName;
+            existingEmployee.LastName = item.LastName;
+            existingEmployee.PhoneNumber = item.PhoneNumber;
+            existingEmployee.BirthDay = item.BirthDay;
+           
+            if (item.PositionId.HasValue)
+            {
+                existingEmployee.PositionId = item.PositionId.Value;
+            }
+            
+            _context.SaveChanges();
         }
 
         public void Delete(Employee item)
         {
-            if (!_employees.Remove(item))
+            var existingEmployee = Get(item.Id);
+            if (existingEmployee == null)
             {
-                throw new InvalidOperationException("Сотрудник не найден в списке.");
+                throw new KeyNotFoundException("Сотрудник не найден.");
             }
+
+            _context.Employees.Remove(existingEmployee);
+            _context.SaveChanges();
         }
 
-        public Employee GetYoungestEmployee()
+        public ICollection<Employee> GetByFilter(Func<Employee, bool> filter)
         {
-            return _employees.OrderBy(e => e.BirthDay).FirstOrDefault();
-        }
-
-        public Employee GetOldestEmployee()
-        {
-            return _employees.OrderByDescending(e => e.BirthDay).FirstOrDefault();
-        }
-
-        public double GetAverageAgeEmployee()
-        {
-            if (_employees.Count == 0) return 0;
-
-            return _employees
-                .Select(e => DateTime.Now.Year - e.BirthDay.Year - (DateTime.Now.DayOfYear < e.BirthDay.DayOfYear ? 1 : 0))
-                .Average();
+            return _context.Employees.AsQueryable()
+                .Where(filter)
+                .ToList();
         }
     }
 }

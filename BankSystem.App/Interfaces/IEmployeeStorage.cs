@@ -2,7 +2,7 @@
 
 namespace BankSystem.App.Interfaces;
 
-public interface IEmployeeStorage : IStorage<Employee, List<Employee>>
+public interface IEmployeeStorage : IStorage<Employee>
 {
-    void AddCollection(List<Employee> employees);
+    ICollection<Employee> GetByFilter(Func<Employee, bool> filter);
 }

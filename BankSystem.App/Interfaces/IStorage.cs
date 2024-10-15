@@ -1,9 +1,10 @@
 ﻿namespace BankSystem.App.Interfaces;
 
-public interface IStorage<T, TResult>
+public interface IStorage<T>
 {
-    TResult Get(Func<T, bool> filter);
+    T Get(Guid id);
+    ICollection<T> GetAll(); 
     void Add(T item);
-    void Update(T item);
-    void Delete(T item);
+    void Update(T item); 
+    void Delete(T item); 
 }
