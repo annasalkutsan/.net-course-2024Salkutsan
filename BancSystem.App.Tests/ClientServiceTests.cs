@@ -86,7 +86,7 @@ namespace BankSystem.App.Tests
             };
 
             // Act
-            _clientService.UpdateClient(updatedClient); 
+            _clientService.UpdateClient(updatedClient.Id, updatedClient); 
 
             // Assert
             var retrievedClient = _clientStorage.Get(originalClient.Id);
