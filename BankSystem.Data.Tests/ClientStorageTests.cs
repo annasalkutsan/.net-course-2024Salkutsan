@@ -49,7 +49,7 @@ public class ClientStorageTests
     }
 
     [Fact]
-    public void AddClientAndDefaultAccount()
+    public void AddClient()
     {
         // Arrange
         var client = _dataGenerator.GenerateClients(1).First();
@@ -64,7 +64,7 @@ public class ClientStorageTests
         Assert.Equal(client.Id, addedClient.Id);
         Assert.NotNull(clientAccount); 
         Assert.Equal("USD", clientAccount.Currency.Code);
-        Assert.Equal(0, clientAccount.Amount); // Проверяем, что баланс аккаунта 0
+        Assert.Equal(0, clientAccount.Amount); 
     }
     
 
@@ -111,7 +111,7 @@ public class ClientStorageTests
         }
 
         // Act
-        var filteredClients = _clientStorage.GetByFilter(c => c.FirstName.StartsWith("A"));
+        var filteredClients = _clientStorage.GetByFilter(c => c.FirstName.StartsWith("Р"));
 
         // Assert
         Assert.NotEmpty(filteredClients);
@@ -141,7 +141,7 @@ public class ClientStorageTests
         var client = _dataGenerator.GenerateClients(1).First();
         _clientStorage.Add(client);
 
-        var newAccount = new Account(new Currency("EUR", "Евро"), 200); // Новый счет в EUR
+        var newAccount = new Account(new Currency("EUR", "Евро"), 200); 
 
         // Act
         _clientStorage.AddAccount(client.Id, newAccount); 
@@ -164,7 +164,7 @@ public class ClientStorageTests
         var defaultAccount = _context.Accounts.First(); 
         var updatedAccount = new Account(defaultAccount.Currency, 500) 
         {
-            Id = defaultAccount.Id // Используем тот же ID
+            Id = defaultAccount.Id 
         };
 
         // Act
@@ -181,7 +181,7 @@ public class ClientStorageTests
         // Arrange
         var client = _dataGenerator.GenerateClients(1).First();
         _clientStorage.Add(client);
-        var newAccount = new Account(new Currency("EUR", "Евро"), 200); // Новый счет в EUR
+        var newAccount = new Account(new Currency("EUR", "Евро"), 200); 
         _clientStorage.AddAccount(client.Id, newAccount);
 
         // Act

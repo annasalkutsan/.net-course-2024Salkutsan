@@ -1,6 +1,6 @@
 ﻿namespace BankSystem.Domain.Models;
 
-public class Position
+public class PositionStorage
 {
     public Guid Id { get; set; } 
     public string Title { get; set; } 
@@ -8,9 +8,9 @@ public class Position
     
     public ICollection<Employee> Employees { get; set; }= new List<Employee>();
 
-    public Position(string title)
+    public PositionStorage(string title)
     {
         Title = title;
     }
-    public Position() {}
+    public PositionStorage() {}
 }

@@ -106,7 +106,7 @@ public class EmployeeStorageTests
         }
 
         // Act
-        var filteredEmployees = _employeeStorage.GetByFilter(e => e.FirstName.StartsWith("A"));
+        var filteredEmployees = _employeeStorage.GetByFilter(e => e.FirstName.StartsWith("А"));
 
         // Assert
         Assert.NotEmpty(filteredEmployees);

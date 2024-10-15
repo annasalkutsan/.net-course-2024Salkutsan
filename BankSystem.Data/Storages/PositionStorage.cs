@@ -4,7 +4,7 @@ using BankSystem.Domain.Models;
 
 namespace BankSystem.Data.Storages;
 
-public class PositionStorage: IStorage<Position>
+public class PositionStorage: IStorage<Domain.Models.PositionStorage>
 {
     private readonly BankSystemDbContext _context;
 
@@ -13,23 +13,23 @@ public class PositionStorage: IStorage<Position>
         _context = context;
     }
 
-    public Position Get(Guid id)
+    public Domain.Models.PositionStorage Get(Guid id)
     {
         return _context.Positions.Find(id);
     }
 
-    public ICollection<Position> GetAll()
+    public ICollection<Domain.Models.PositionStorage> GetAll()
     {
         return _context.Positions.ToList();
     }
 
-    public void Add(Position item)
+    public void Add(Domain.Models.PositionStorage item)
     {
         _context.Positions.Add(item);
         _context.SaveChanges();
     }
 
-    public void Update(Position item)
+    public void Update(Domain.Models.PositionStorage item)
     {
         var existingPosition = Get(item.Id);
         if (existingPosition == null)
@@ -42,7 +42,7 @@ public class PositionStorage: IStorage<Position>
         _context.SaveChanges();
     }
 
-    public void Delete(Position item)
+    public void Delete(Domain.Models.PositionStorage item)
     {
         var existingPosition = Get(item.Id);
         if (existingPosition == null)

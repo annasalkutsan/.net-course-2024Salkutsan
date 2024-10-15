@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace BankSystem.Data.EntityConfigurations;
 
-public class PositionConfiguration: IEntityTypeConfiguration<Position>
+public class PositionConfiguration: IEntityTypeConfiguration<PositionStorage>
 {
-    public void Configure(EntityTypeBuilder<Position> builder)
+    public void Configure(EntityTypeBuilder<PositionStorage> builder)
     {
         builder.ToTable("positions");
 
@@ -22,7 +22,7 @@ public class PositionConfiguration: IEntityTypeConfiguration<Position>
             .HasColumnName("create_utc");
 
         builder.HasMany(p => p.Employees)
-            .WithOne(e => e.Position)
+            .WithOne(e => e.PositionStorage)
             .HasForeignKey(e => e.PositionId)
             .OnDelete(DeleteBehavior.SetNull);
     }

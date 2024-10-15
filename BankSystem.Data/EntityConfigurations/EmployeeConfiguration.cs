@@ -1,6 +1,7 @@
 ﻿using BankSystem.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace BankSystem.Data.EntityConfigurations;
 
@@ -28,9 +29,14 @@ public class EmployeeConfiguration : IEntityTypeConfiguration<Employee>
             .HasMaxLength(15)
             .HasColumnName("phone_number"); 
 
+        var dateTimeConverter = new ValueConverter<DateTime, DateTime>(
+            v => v.ToUniversalTime(), 
+            v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+
         builder.Property(e => e.BirthDay)
             .IsRequired()
-            .HasColumnName("birth_day"); 
+            .HasColumnName("birth_day")
+            .HasConversion(dateTimeConverter);
 
         builder.Property(e => e.Contract)
             .IsRequired()
@@ -48,7 +54,7 @@ public class EmployeeConfiguration : IEntityTypeConfiguration<Employee>
         builder.Property(a => a.CreateUtc)
             .HasColumnName("create_utc");
 
-        builder.HasOne(e => e.Position)
+        builder.HasOne(e => e.PositionStorage)
             .WithMany(p => p.Employees)
             .HasForeignKey(e => e.PositionId)
             .OnDelete(DeleteBehavior.SetNull);

@@ -7,7 +7,7 @@ namespace BankSystem.Data.EntityConfigurations;
 public class BankSystemDbContext: DbContext
 {
     public DbSet<Employee> Employees { get; set; }
-    public DbSet<Position> Positions { get; set; }
+    public DbSet<PositionStorage> Positions { get; set; }
     public DbSet<Currency> Currencies { get; set; }
     public DbSet<Account> Accounts { get; set; }
     public DbSet<Client> Clients { get; set; }

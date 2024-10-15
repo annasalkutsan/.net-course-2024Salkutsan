@@ -1,6 +1,7 @@
 ﻿using BankSystem.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace BankSystem.Data.EntityConfigurations;
 
@@ -30,9 +31,14 @@ public class ClientConfiguration: IEntityTypeConfiguration<Client>
             .HasMaxLength(15)
             .HasColumnName("phone_number");
 
-        builder.Property(c => c.BirthDay)
+        var dateTimeConverter = new ValueConverter<DateTime, DateTime>(
+            v => v.ToUniversalTime(), 
+            v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+
+        builder.Property(e => e.BirthDay)
             .IsRequired()
-            .HasColumnName("birth_day");
+            .HasColumnName("birth_day")
+            .HasConversion(dateTimeConverter);
 
         builder.Property(c => c.Passport)
             .IsRequired()

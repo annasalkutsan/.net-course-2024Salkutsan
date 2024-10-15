@@ -12,7 +12,7 @@ namespace BankSystem.App.Services
                 .RuleFor(c => c.LastName, f => f.Name.LastName())
                 .RuleFor(c => c.PhoneNumber, f => $"+373 777 55 {f.Random.Number(100, 999)}")
                 .RuleFor(c => c.Passport, f => $"{f.Random.AlphaNumeric(2).ToUpper()}{f.Random.Number(100000, 999999)}")
-                .RuleFor(e => e.BirthDay, f => f.Date.Past(18));
+                .RuleFor(e => e.BirthDay, f => f.Date.Past(100, DateTime.Now.AddYears(-18)));
 
             return clientFaker.Generate(count);
         }
@@ -23,17 +23,17 @@ namespace BankSystem.App.Services
                 .RuleFor(e => e.FirstName, f => f.Name.FirstName())
                 .RuleFor(e => e.LastName, f => f.Name.LastName())
                 .RuleFor(e => e.PhoneNumber, f => $"+373 777 66 {f.Random.Number(100, 999)}")
-                .RuleFor(e => e.Position, f => new Position(f.Name.JobTitle())) // Генерация должности
-                .RuleFor(e => e.BirthDay, f => f.Date.Past(18))
+                .RuleFor(e => e.PositionStorage, f => new PositionStorage(f.Name.JobTitle())) // Генерация должности
+                .RuleFor(e => e.BirthDay, f => f.Date.Past(19))
                 .RuleFor(e => e.Contract, f => "Контракт для сотрудника")
                 .RuleFor(e => e.Salary, f => f.Random.Number(1000, 50000));
 
             return employeeFaker.Generate(count);
         }
 
-        public List<Position> GeneratePositions(int count)
+        public List<PositionStorage> GeneratePositions(int count)
         {
-            var positionFaker = new Faker<Position>("ru")
+            var positionFaker = new Faker<PositionStorage>("ru")
                 .RuleFor(p => p.Title, f => f.Name.JobTitle());
 
             return positionFaker.Generate(count);

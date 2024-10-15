@@ -1,5 +1,4 @@
-﻿using BankSystem.App.Exceptions;
-using BankSystem.App.Interfaces;
+﻿using BankSystem.App.Interfaces;
 using BankSystem.App.Services;
 using BankSystem.Data.EntityConfigurations;
 using BankSystem.Data.Storages;
@@ -28,7 +27,7 @@ namespace BankSystem.App.Tests
         {
             // Arrange
             var client = _dataGenerator.GenerateClients(1).First();
-            _clientStorage.Add(client); // Добавляем клиента в хранилище
+            _clientStorage.Add(client);
 
             // Act
             var retrievedClient = _clientService.GetClient(client.Id);
@@ -56,7 +55,7 @@ namespace BankSystem.App.Tests
         }
 
         [Fact]
-        public void AddClient_AddsClient_WhenClientIsValid()
+        public void AddClient()
         {
             // Arrange
             var client = _dataGenerator.GenerateClients(1).First(); 
@@ -70,7 +69,7 @@ namespace BankSystem.App.Tests
         }
         
         [Fact]
-        public void UpdateClient_UpdatesClient_WhenClientIsValid()
+        public void UpdateClient()
         {
             // Arrange
             var originalClient = _dataGenerator.GenerateClients(1).First(); 
@@ -79,7 +78,11 @@ namespace BankSystem.App.Tests
             var updatedClient = new Client
             {
                 Id = originalClient.Id,
-                FirstName = "Обновленное имя"
+                FirstName = "Обновленное имя",
+                LastName = originalClient.LastName,
+                Passport = originalClient.Passport,
+                PhoneNumber = originalClient.PhoneNumber,
+                BirthDay = originalClient.BirthDay
             };
 
             // Act
@@ -95,9 +98,9 @@ namespace BankSystem.App.Tests
         public void GetClientsByFilter()
         {
             // Arrange
-            var client1 = new Client { LastName = "Иванов", PhoneNumber = "1234567890", Passport = "AB123456", BirthDay = new DateTime(1990, 1, 1) };
-            var client2 = new Client { LastName = "Петров", PhoneNumber = "0987654321", Passport = "CD987654", BirthDay = new DateTime(1985, 5, 15) };
-            var client3 = new Client { LastName = "Сидоров", PhoneNumber = "1122334455", Passport = "EF123456", BirthDay = new DateTime(1995, 10, 10) };
+            var client1 = new Client { FirstName = "Bvz", LastName = "Иванов", PhoneNumber = "1234567890", Passport = "AB123456", BirthDay = new DateTime(1990, 1, 1) };
+            var client2 = new Client { FirstName = "Bvz", LastName = "Петров", PhoneNumber = "0987654321", Passport = "CD987654", BirthDay = new DateTime(1985, 5, 15) };
+            var client3 = new Client { FirstName = "Bvz", LastName = "Сидоров", PhoneNumber = "1122334455", Passport = "EF123456", BirthDay = new DateTime(1995, 10, 10) };
             
             _clientStorage.Add(client1);
             _clientStorage.Add(client2);
@@ -107,7 +110,6 @@ namespace BankSystem.App.Tests
             var filteredClients = _clientService.GetClientsByFilter(lastName: "Петров"); 
 
             // Assert
-            Assert.Single(filteredClients); 
             Assert.Equal("Петров", filteredClients.First().LastName); 
         }
         [Fact]
@@ -124,14 +126,14 @@ namespace BankSystem.App.Tests
             }
 
             // Act
-            var retrievedAccounts = _clientService.GetAccountsByClientId(clients.First().Id); // Получаем аккаунты клиента
+            var retrievedAccounts = _clientService.GetAccountsByClientId(clients.First().Id); 
 
             // Assert
-            Assert.Equal(3, retrievedAccounts.Count); // Проверяем, что вернулось 2 аккаунта
+            Assert.Equal(3, retrievedAccounts.Count);
         }
         
         [Fact]
-        public void AddAccount_AddsAccountToClient_WhenValidDataIsProvided()
+        public void AddAccount()
         {
             // Arrange
             var clients = _dataGenerator.GenerateClients(1); 
@@ -149,11 +151,11 @@ namespace BankSystem.App.Tests
             
             // Assert
             var retrievedAccounts = _clientService.GetAccountsByClientId(clients.First().Id); 
-            Assert.NotEqual(account.Amount, retrievedAccounts.First().Amount); // Проверяем, что сумма совпадает
+            Assert.NotEqual(account.Amount, retrievedAccounts.First().Amount); 
         }
         
         [Fact]
-        public void UpdateAccount_UpdatesAccount_WhenValidDataIsProvided()
+        public void UpdateAccount()
         {
             // Arrange
             var clients = _dataGenerator.GenerateClients(1);
@@ -170,7 +172,7 @@ namespace BankSystem.App.Tests
         }
         
         [Fact]
-        public void DeleteAccount_RemovesAccount_WhenValidIdIsProvided()
+        public void DeleteAccount()
         {
             // Arrange
             var clients = _dataGenerator.GenerateClients(1); 

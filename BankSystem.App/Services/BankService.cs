@@ -40,9 +40,9 @@ public class BankService
     /// Преобразования клиента банка в сотрудника
     /// </summary>
     /// <param name="client"></param>
-    /// <param name="position"></param>
+    /// <param name="positionStorage"></param>
     /// <returns></returns>
-    public Employee ConvertClientToEmployee(Client client, Position  position)
+    public Employee ConvertClientToEmployee(Client client, PositionStorage  positionStorage)
     {
         return new Employee
         {
@@ -50,7 +50,7 @@ public class BankService
             LastName = client.LastName,
             PhoneNumber = client.PhoneNumber,
             BirthDay = client.BirthDay,
-            Position = position,
+            PositionStorage = positionStorage,
             Contract = "Новый контракт для сотрудника"
         };
     }
