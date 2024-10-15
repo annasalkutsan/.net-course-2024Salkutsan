@@ -34,16 +34,25 @@ namespace BankSystem.App.Services
             _clientStorage.Add(client);
         }
 
-        public void UpdateClient(Client client)
+        public void UpdateClient(Guid clientId, Client updatedClient)
         {
-            ValidateClient(client);
-            _clientStorage.Update(client);
+            if (clientId != updatedClient.Id)
+            {
+                throw new ArgumentException("Идентификатор клиента не совпадает с идентификатором обновлённого клиента.");
+            }
+            
+            _clientStorage.Update(updatedClient);
         }
 
-        public void DeleteClient(Client client)
+
+        public void DeleteClient(Guid clientId)
         {
-            _clientStorage.Delete(client);
+            // временнsq объект Client для удаления
+            var clientToDelete = new Client { Id = clientId };
+
+            _clientStorage.Delete(clientToDelete);
         }
+
 
         public ICollection<Client> GetClientsByFilter(
             string lastName = null, 
