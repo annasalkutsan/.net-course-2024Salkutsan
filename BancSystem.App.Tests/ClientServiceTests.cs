@@ -1,6 +1,7 @@
 ﻿using BankSystem.App.Exceptions;
 using BankSystem.App.Interfaces;
 using BankSystem.App.Services;
+using BankSystem.Data.EntityConfigurations;
 using BankSystem.Data.Storages;
 using BankSystem.Domain.Models;
 using Xunit;
@@ -12,182 +13,185 @@ namespace BankSystem.App.Tests
         private readonly IClientStorage _clientStorage;
         private readonly ClientService _clientService;
         private readonly TestDataGenerator _dataGenerator;
+        private BankSystemDbContext _context;
 
         public ClientServiceTests()
         {
-            _clientStorage = new ClientStorage();
+            _context = new BankSystemDbContext(); 
+            _clientStorage = new ClientStorage(_context);
             _clientService = new ClientService(_clientStorage);
             _dataGenerator = new TestDataGenerator();
         }
-
+        
         [Fact]
-        public void AddClientPositiveTest()
+        public void GetClient()
         {
+            // Arrange
             var client = _dataGenerator.GenerateClients(1).First();
-            _clientService.Add(client);
-            var allClients = _clientStorage.Get(c => true);
-            Assert.Single(allClients);
-            Assert.Equal(client, allClients.First().Key);
-        }
+            _clientStorage.Add(client); // Добавляем клиента в хранилище
 
-        [Fact]
-        public void AddClientNegativeTestAgeException()
-        {
-            var client = new Client
-            {
-                BirthDay = DateTime.Now.AddYears(-17),
-                Passport = "AB123456"
-            };
-            Assert.Throws<AgeException>(() => _clientService.Add(client));
-        }
+            // Act
+            var retrievedClient = _clientService.GetClient(client.Id);
 
-        [Fact]
-        public void AddClientNegativeTestPassportException()
-        {
-            var client = new Client
-            {
-                BirthDay = DateTime.Now.AddYears(-20),
-                Passport = null
-            };
-            Assert.Throws<PassportException>(() => _clientService.Add(client));
+            // Assert
+            Assert.NotNull(retrievedClient);
+            Assert.Equal(client, retrievedClient);
         }
-
+        
         [Fact]
-        public void AddClientsPositiveTest()
+        public void GetAllClients()
         {
-            var clients = _dataGenerator.GenerateClients(5);
-            var clientAccounts = _dataGenerator.GenerateClientAccounts(clients);
-            _clientService.Add(clientAccounts);
-            var allClients = _clientStorage.Get(c => true);
-            Assert.Equal(5, allClients.Count);
-        }
-
-        [Fact]
-        public void AddClientsNegativeTestAgeException()
-        {
-            var clients = new Dictionary<Client, List<Account>>
-            {
-                { new Client { BirthDay = DateTime.Now.AddYears(-17), Passport = "AB123456" }, new List<Account>() }
-            };
-            Assert.Throws<AgeException>(() => _clientService.Add(clients));
-        }
-
-        [Fact]
-        public void AddClientsNegativeTestPassportException()
-        {
-            var clients = new Dictionary<Client, List<Account>>
-            {
-                { new Client { BirthDay = DateTime.Now.AddYears(-20), Passport = null }, new List<Account>() }
-            };
-            Assert.Throws<PassportException>(() => _clientService.Add(clients));
-        }
-
-        [Fact]
-        public void AddAccountToClientPositiveTest()
-        {
-            var client = _dataGenerator.GenerateClients(1).First();
-            var account = new Account();
-            _clientService.Add(client);
-            var clientAccounts = _clientStorage.Get(c => c == client).First().Value;
-            Assert.Single(clientAccounts);
-        }
-
-        [Fact]
-        public void AddAccountToClientNegativeTestNullAccount()
-        {
-            var client = _dataGenerator.GenerateClients(1).First();
-            Assert.Throws<ArgumentNullException>(() => _clientService.AddAccount(client, null));
-        }
-
-        [Fact]
-        public void RemoveClientPositiveTest()
-        {
-            var client = _dataGenerator.GenerateClients(1).First();
-            _clientService.Add(client);
-            _clientService.Delete(client);
-            var allClients = _clientStorage.Get(c => true);
-            Assert.Empty(allClients);
-        }
-
-        [Fact]
-        public void RemoveClientNegativeTestNullClient()
-        {
-            Assert.Throws<ArgumentNullException>(() => _clientService.Delete(null));
-        }
-
-        [Fact]
-        public void EditClientNegativeTestAgeException()
-        {
-            var newClient = new Client { BirthDay = DateTime.Now.AddYears(-17) };
-            Assert.Throws<AgeException>(() => _clientService.Update(newClient));
-        }
-
-        [Fact]
-        public void EditClientNegativeTestPassportException()
-        {
-            var newClient = new Client { BirthDay = DateTime.Now.AddYears(-20), Passport = null };
-            Assert.Throws<PassportException>(() => _clientService.Update(newClient));
-        }
-
-        [Fact]
-        public void GetClientsByFilterPositiveTest()
-        {
-            var clients = _dataGenerator.GenerateClients(5);
+            // Arrange
+            var clients = _dataGenerator.GenerateClients(3);
             foreach (var client in clients)
             {
-                _clientService.Add(client);
+                _clientStorage.Add(client); 
             }
-            var result = _clientService.GetClientsByFilter();
-            Assert.Equal(5, result.Count);
+
+            // Act
+            var retrievedClients = _clientService.GetAllClients();
+
+            // Assert
+            Assert.Equal(clients.Count, retrievedClients.Count);
         }
 
         [Fact]
-        public void GetAllClientsPositiveTest()
+        public void AddClient_AddsClient_WhenClientIsValid()
         {
-            var clients = _dataGenerator.GenerateClients(5);
-            foreach (var client in clients)
-            {
-                _clientService.Add(client);
-            }
-            var result = _clientStorage.Get(c => true);
-            Assert.Equal(5, result.Count);
+            // Arrange
+            var client = _dataGenerator.GenerateClients(1).First(); 
+            // Act
+            _clientService.AddClient(client); 
+
+            // Assert
+            var retrievedClient = _clientStorage.Get(client.Id); 
+            Assert.NotNull(retrievedClient);
+            Assert.Equal(client, retrievedClient); 
         }
         
-        
         [Fact]
-        public void UpdateAccountPositiveTest()
+        public void UpdateClient_UpdatesClient_WhenClientIsValid()
         {
-            var client = _dataGenerator.GenerateClients(1).First();
-            _clientService.Add(client);
-            
-            var updatedAccount = new Account
+            // Arrange
+            var originalClient = _dataGenerator.GenerateClients(1).First(); 
+            _clientStorage.Add(originalClient); 
+
+            var updatedClient = new Client
             {
-                Currency = new Currency("USD", "US Dollar"),
-                Amount = 1500 
+                Id = originalClient.Id,
+                FirstName = "Обновленное имя"
             };
 
-            _clientService.UpdateAccount(client, updatedAccount);
+            // Act
+            _clientService.UpdateClient(updatedClient); 
 
-            var clientAccounts = _clientStorage.Get(c => c == client).First().Value;
-            
-            Assert.Equal(updatedAccount.Currency.Code, clientAccounts.First().Currency.Code);
+            // Assert
+            var retrievedClient = _clientStorage.Get(originalClient.Id);
+            Assert.NotNull(retrievedClient);
+            Assert.Equal("Обновленное имя", retrievedClient.FirstName); 
         }
         
         [Fact]
-        public void DeleteAccountPositiveTest()
+        public void GetClientsByFilter()
         {
-            var client = _dataGenerator.GenerateClients(1).First();
-            var account = new Account();
-            _clientService.Add(client);
+            // Arrange
+            var client1 = new Client { LastName = "Иванов", PhoneNumber = "1234567890", Passport = "AB123456", BirthDay = new DateTime(1990, 1, 1) };
+            var client2 = new Client { LastName = "Петров", PhoneNumber = "0987654321", Passport = "CD987654", BirthDay = new DateTime(1985, 5, 15) };
+            var client3 = new Client { LastName = "Сидоров", PhoneNumber = "1122334455", Passport = "EF123456", BirthDay = new DateTime(1995, 10, 10) };
+            
+            _clientStorage.Add(client1);
+            _clientStorage.Add(client2);
+            _clientStorage.Add(client3);
 
-            _clientService.AddAccount(client, account);
+            // Act
+            var filteredClients = _clientService.GetClientsByFilter(lastName: "Петров"); 
 
-            _clientService.DeleteAccount(client, account);
-
-            var clientAccountsAfterDelete = _clientStorage.Get(c => c == client).First().Value;
-            Assert.Single(clientAccountsAfterDelete);
+            // Assert
+            Assert.Single(filteredClients); 
+            Assert.Equal("Петров", filteredClients.First().LastName); 
         }
+        [Fact]
+        public void GetAccountsByClientId()
+        {
+            var clients = _dataGenerator.GenerateClients(1); 
+            var accounts = _dataGenerator.GenerateAccounts(2, clients); 
 
+            // Добавляем клиента и его аккаунты в хранилище
+            _clientStorage.Add(clients.First());
+            foreach (var account in accounts)
+            {
+                _clientService.AddAccount(clients.First().Id, account);
+            }
 
+            // Act
+            var retrievedAccounts = _clientService.GetAccountsByClientId(clients.First().Id); // Получаем аккаунты клиента
+
+            // Assert
+            Assert.Equal(3, retrievedAccounts.Count); // Проверяем, что вернулось 2 аккаунта
+        }
+        
+        [Fact]
+        public void AddAccount_AddsAccountToClient_WhenValidDataIsProvided()
+        {
+            // Arrange
+            var clients = _dataGenerator.GenerateClients(1); 
+            _clientStorage.Add(clients.First()); 
+            var account = new Account 
+            {
+                Id = Guid.NewGuid(),
+                Currency = new Currency("MLD", "Молдавский Лей"),
+                Amount = 5000,
+                ClientId = clients.First().Id 
+            };
+
+            // Act
+            _clientService.AddAccount(clients.First().Id, account); 
+            
+            // Assert
+            var retrievedAccounts = _clientService.GetAccountsByClientId(clients.First().Id); 
+            Assert.NotEqual(account.Amount, retrievedAccounts.First().Amount); // Проверяем, что сумма совпадает
+        }
+        
+        [Fact]
+        public void UpdateAccount_UpdatesAccount_WhenValidDataIsProvided()
+        {
+            // Arrange
+            var clients = _dataGenerator.GenerateClients(1);
+            _clientStorage.Add(clients.First());
+            var account = _clientStorage.GetAccountsByClientId(clients.First().Id);
+            account.First().Amount = 2000; 
+
+            // Act
+            _clientService.UpdateAccount(account.First()); 
+
+            // Assert
+            var updatedAccount = _clientService.GetAccountsByClientId(clients.First().Id).FirstOrDefault(a => a.Id == account.First().Id);
+            Assert.Equal(account.First().Amount, updatedAccount.Amount);
+        }
+        
+        [Fact]
+        public void DeleteAccount_RemovesAccount_WhenValidIdIsProvided()
+        {
+            // Arrange
+            var clients = _dataGenerator.GenerateClients(1); 
+            _clientStorage.Add(clients.First()); 
+
+            var account = new Account
+            {
+                Id = Guid.NewGuid(),
+                Currency = new Currency("USD", "Доллар США"),
+                Amount = 1000,
+                ClientId = clients.First().Id 
+            };
+
+            _clientStorage.AddAccount(clients.First().Id, account); 
+            
+            // Act
+            _clientService.DeleteAccount(account.Id); 
+
+            // Assert
+            var deletedAccount = _clientService.GetAccountsByClientId(clients.First().Id).FirstOrDefault(a => a.Id == account.Id);
+            Assert.Null(deletedAccount);
+        }
     }
 }

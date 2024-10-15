@@ -61,7 +61,6 @@ namespace BankSystem.App.Services
             // пагинация
             return query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
         }
-
         
         private void ValidateEmployee(Employee employee)
         {
