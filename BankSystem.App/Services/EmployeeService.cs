@@ -34,15 +34,15 @@ namespace BankSystem.App.Services
             _employeeStorage.Add(employee);
         }
 
-        public void UpdateEmployee(Employee employee)
+        public void UpdateEmployee(Guid idEmployee, Employee employee)
         {
             ValidateEmployee(employee);
-            _employeeStorage.Update(employee);
+            _employeeStorage.Update(idEmployee, employee);
         }
 
-        public void DeleteEmployee(Employee employee)
+        public void DeleteEmployee(Guid idEmployee)
         {
-            _employeeStorage.Delete(employee);
+            _employeeStorage.Delete(idEmployee);
         }
 
         public ICollection<Employee> GetEmployeesByFilter(
@@ -56,7 +56,7 @@ namespace BankSystem.App.Services
             var query = _employeeStorage.GetByFilter(e =>
                 (string.IsNullOrWhiteSpace(lastName) || e.LastName.Contains(lastName, StringComparison.OrdinalIgnoreCase)) &&
                 (string.IsNullOrWhiteSpace(phoneNumber) || e.PhoneNumber.Contains(phoneNumber)) &&
-                (string.IsNullOrWhiteSpace(positionName) || (e.PositionStorage != null && e.PositionStorage.Title.Contains(positionName, StringComparison.OrdinalIgnoreCase))));
+                (string.IsNullOrWhiteSpace(positionName) || (e.Position != null && e.Position.Title.Contains(positionName, StringComparison.OrdinalIgnoreCase))));
 
             // пагинация
             return query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();

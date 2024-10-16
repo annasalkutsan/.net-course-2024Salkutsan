@@ -22,15 +22,22 @@ public class CurrencyStorage: IStorage<Currency>
         return _context.Currencies.ToList();
     }
 
+    public ICollection<Currency> GetByFilter(Func<Currency, bool> filter)
+    {
+        return _context.Currencies.AsQueryable()
+            .Where(filter)
+            .ToList();
+    }
+    
     public void Add(Currency item)
     {
         _context.Currencies.Add(item);
         _context.SaveChanges();
     }
 
-    public void Update(Currency item)
+    public void Update(Guid id, Currency item)
     {
-        var existingCurrency = Get(item.Id);
+        var existingCurrency = Get(id);
         if (existingCurrency == null)
         {
             throw new KeyNotFoundException("Валюта не найдена.");
@@ -42,9 +49,9 @@ public class CurrencyStorage: IStorage<Currency>
         _context.SaveChanges();
     }
 
-    public void Delete(Currency item)
+    public void Delete(Guid id)
     {
-        var existingCurrency = Get(item.Id);
+        var existingCurrency = Get(id);
         if (existingCurrency == null)
         {
             throw new KeyNotFoundException("Валюта не найдена.");

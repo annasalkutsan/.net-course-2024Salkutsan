@@ -17,14 +17,14 @@
         {
             if (obj is Client otherClient)
             {
-                return Passport == otherClient.Passport;
+                return Id == otherClient.Id;
             }
             return false;
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Passport);
+            return HashCode.Combine(Id);
         }
     }
 }

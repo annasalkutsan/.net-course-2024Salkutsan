@@ -77,7 +77,7 @@ public class ClientStorageTests
         client.FirstName = "UpdatedName";
 
         // Act
-        _clientStorage.Update(client);
+        _clientStorage.Update(client.Id, client);
 
         // Assert
         var updatedClient = _context.Clients.Find(client.Id);
@@ -93,7 +93,7 @@ public class ClientStorageTests
         _clientStorage.Add(client);
 
         // Act
-        _clientStorage.Delete(client);
+        _clientStorage.Delete(client.Id);
 
         // Assert
         var deletedClient = _clientStorage.Get(client.Id);
@@ -191,4 +191,22 @@ public class ClientStorageTests
         var deletedAccount = _context.Accounts.Find(newAccount.Id);
         Assert.Null(deletedAccount);
     }
+    
+    [Fact]
+    public void GetAverageAgeClient_PositiveTest()
+    {
+        // Arrange
+        var clients = _dataGenerator.GenerateClients(5);
+        
+        _context.Clients.AddRange(clients);
+        _context.SaveChanges();
+
+        // Act
+        var averageAge = _clientStorage.GetAverageAgeClient();
+
+        // Assert
+        var expectedAverageAge = clients.Average(c => DateTime.Now.Year - c.BirthDay.Year - (DateTime.Now.DayOfYear < c.BirthDay.DayOfYear ? 1 : 0));
+        Assert.Equal(expectedAverageAge, averageAge, 1); // Погрешность 1 год
+    }
+
 }

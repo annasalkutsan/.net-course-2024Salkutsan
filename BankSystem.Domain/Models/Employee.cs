@@ -6,7 +6,7 @@
         public decimal Salary { get; set; } 
 
         public Guid? PositionId { get; set; }
-        public PositionStorage PositionStorage { get; set; }
+        public Position Position { get; set; }
         
         public Employee(string contract, decimal salary, string firstName, string lastName, string phoneNumber, DateTime birthDay)
             : base(firstName, lastName, phoneNumber, birthDay)
@@ -21,14 +21,14 @@
         {
             if (obj is Employee otherEmployee)
             {
-                return PhoneNumber == otherEmployee.PhoneNumber;
+                return Id == otherEmployee.Id;
             }
             return false;
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(PhoneNumber);
+            return HashCode.Combine(Id);
         }
     }
 }

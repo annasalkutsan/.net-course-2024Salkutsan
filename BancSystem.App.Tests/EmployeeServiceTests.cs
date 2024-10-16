@@ -81,7 +81,7 @@ namespace BankSystem.App.Tests
             
             // Act
             employee.LastName = "Обновленный"; 
-            _employeeService.UpdateEmployee(employee);
+            _employeeService.UpdateEmployee(employee.Id, employee);
             _context.SaveChanges(); 
             
             // Assert
@@ -98,7 +98,7 @@ namespace BankSystem.App.Tests
             _context.SaveChanges(); 
             
             // Act
-            _employeeService.DeleteEmployee(employee);
+            _employeeService.DeleteEmployee(employee.Id);
             _context.SaveChanges(); 
 
             // Assert

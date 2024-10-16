@@ -4,7 +4,7 @@ using BankSystem.Domain.Models;
 
 namespace BankSystem.Data.Storages;
 
-public class PositionStorage: IStorage<Domain.Models.PositionStorage>
+public class PositionStorage: IStorage<Position>
 {
     private readonly BankSystemDbContext _context;
 
@@ -13,25 +13,32 @@ public class PositionStorage: IStorage<Domain.Models.PositionStorage>
         _context = context;
     }
 
-    public Domain.Models.PositionStorage Get(Guid id)
+    public Position Get(Guid id)
     {
         return _context.Positions.Find(id);
     }
 
-    public ICollection<Domain.Models.PositionStorage> GetAll()
+    public ICollection<Position> GetAll()
     {
         return _context.Positions.ToList();
     }
 
-    public void Add(Domain.Models.PositionStorage item)
+    public ICollection<Position> GetByFilter(Func<Position, bool> filter)
+    {
+        return _context.Positions.AsQueryable()
+            .Where(filter)
+            .ToList();
+    }
+
+    public void Add(Position item)
     {
         _context.Positions.Add(item);
         _context.SaveChanges();
     }
 
-    public void Update(Domain.Models.PositionStorage item)
+    public void Update(Guid id, Position item)
     {
-        var existingPosition = Get(item.Id);
+        var existingPosition = Get(id);
         if (existingPosition == null)
         {
             throw new KeyNotFoundException("Должность не найдена.");
@@ -42,9 +49,9 @@ public class PositionStorage: IStorage<Domain.Models.PositionStorage>
         _context.SaveChanges();
     }
 
-    public void Delete(Domain.Models.PositionStorage item)
+    public void Delete(Guid id)
     {
-        var existingPosition = Get(item.Id);
+        var existingPosition = Get(id);
         if (existingPosition == null)
         {
             throw new KeyNotFoundException("Должность не найдена.");

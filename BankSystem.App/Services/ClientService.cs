@@ -36,23 +36,14 @@ namespace BankSystem.App.Services
 
         public void UpdateClient(Guid clientId, Client updatedClient)
         {
-            if (clientId != updatedClient.Id)
-            {
-                throw new ArgumentException("Идентификатор клиента не совпадает с идентификатором обновлённого клиента.");
-            }
-            
-            _clientStorage.Update(updatedClient);
+            _clientStorage.Update(clientId, updatedClient);
         }
 
 
         public void DeleteClient(Guid clientId)
         {
-            // временнsq объект Client для удаления
-            var clientToDelete = new Client { Id = clientId };
-
-            _clientStorage.Delete(clientToDelete);
+            _clientStorage.Delete(clientId);
         }
-
 
         public ICollection<Client> GetClientsByFilter(
             string lastName = null, 

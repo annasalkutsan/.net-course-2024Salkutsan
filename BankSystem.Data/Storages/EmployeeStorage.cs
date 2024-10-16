@@ -34,7 +34,7 @@ namespace BankSystem.Data.Storages
             _context.SaveChanges();
         }
 
-        public void Update(Employee item)
+        public void Update(Guid id, Employee item)
         {
             var existingEmployee = Get(item.Id);
             if (existingEmployee == null)
@@ -57,9 +57,9 @@ namespace BankSystem.Data.Storages
             _context.SaveChanges();
         }
 
-        public void Delete(Employee item)
+        public void Delete(Guid id)
         {
-            var existingEmployee = Get(item.Id);
+            var existingEmployee = Get(id);
             if (existingEmployee == null)
             {
                 throw new KeyNotFoundException("Сотрудник не найден.");

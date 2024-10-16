@@ -54,7 +54,7 @@ public class EmployeeConfiguration : IEntityTypeConfiguration<Employee>
         builder.Property(a => a.CreateUtc)
             .HasColumnName("create_utc");
 
-        builder.HasOne(e => e.PositionStorage)
+        builder.HasOne(e => e.Position)
             .WithMany(p => p.Employees)
             .HasForeignKey(e => e.PositionId)
             .OnDelete(DeleteBehavior.SetNull);

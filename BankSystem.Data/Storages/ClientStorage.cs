@@ -42,9 +42,9 @@ namespace BankSystem.Data.Storages
             _context.SaveChanges();
         }
 
-        public void Update(Client item)
+        public void Update(Guid id, Client item)
         {
-            var existingClient = Get(item.Id);
+            var existingClient = Get(id);
             if (existingClient == null)
             {
                 throw new KeyNotFoundException("Клиент не найден.");
@@ -59,9 +59,9 @@ namespace BankSystem.Data.Storages
             _context.SaveChanges();
         }
 
-        public void Delete(Client item)
+        public void Delete(Guid id)
         {
-            var existingClient = Get(item.Id);
+            var existingClient = Get(id);
     
             if (existingClient == null)
             {
@@ -131,5 +131,17 @@ namespace BankSystem.Data.Storages
 
             _context.SaveChanges();
         }
+        
+        public double GetAverageAgeClient()
+        {
+            var now = DateTime.Now;
+    
+            return _context.Clients.Any()
+                ? _context.Clients
+                    .Select(c => now.Year - c.BirthDay.Year - (now.DayOfYear < c.BirthDay.DayOfYear ? 1 : 0))
+                    .Average()
+                : 0;
+        }
+
     }
 }

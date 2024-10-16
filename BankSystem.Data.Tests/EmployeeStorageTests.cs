@@ -73,7 +73,7 @@ public class EmployeeStorageTests
         employee.FirstName = "UpdatedName";
 
         // Act
-        _employeeStorage.Update(employee);
+        _employeeStorage.Update(employee.Id, employee);
 
         // Assert
         var updatedEmployee = _context.Employees.Find(employee.Id);
@@ -88,7 +88,7 @@ public class EmployeeStorageTests
         _employeeStorage.Add(employee);
 
         // Act
-        _employeeStorage.Delete(employee);
+        _employeeStorage.Delete(employee.Id);
 
         // Assert
         var deletedEmployee = _employeeStorage.Get(employee.Id);

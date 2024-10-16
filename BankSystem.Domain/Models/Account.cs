@@ -21,13 +21,13 @@ public class Account
     {
         if (obj is Account other)
         {
-            return Currency.Equals(other.Currency);
+            return Id == other.Id;
         }
         return false;
     }
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(Currency);
+        return HashCode.Combine(Id);
     }
 }
