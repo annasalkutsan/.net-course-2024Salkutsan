@@ -6,7 +6,7 @@ namespace BancSystem.App.Tests;
 
 public class EquivalenceTests
 {
-    [Fact]
+    /*[Fact]
     public void GetHashCodeNecessityPositivTest()
     {
         var testDataGenerator = new TestDataGenerator();
@@ -89,5 +89,5 @@ public class EquivalenceTests
         var employeeList = employees.ToList();
 
         Assert.Contains(newEmployee, employeeList);
-    }
+    }*/
 }

@@ -2,7 +2,5 @@
 
 namespace BankSystem.App.Interfaces;
 
-public interface IEmployeeStorage : IStorage<Employee, List<Employee>>
-{
-    void AddCollection(List<Employee> employees);
-}
+public interface IEmployeeStorage : IStorage<Employee>
+{ }

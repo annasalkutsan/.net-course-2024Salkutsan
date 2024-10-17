@@ -1,133 +1,147 @@
 ﻿using BankSystem.App.Interfaces;
+using BankSystem.Data.EntityConfigurations;
 using BankSystem.Domain.Models;
 
 namespace BankSystem.Data.Storages
 {
     public class ClientStorage : IClientStorage
     {
-        private Dictionary<Client, List<Account>> _clientAccounts;
+        private readonly BankSystemDbContext _context;
 
-        public ClientStorage()
+        public ClientStorage(BankSystemDbContext context)
         {
-            _clientAccounts = new Dictionary<Client, List<Account>>();
+            _context = context;
+        }
+        public Client Get(Guid id)
+        {
+            return _context.Clients.Find(id);
         }
 
-        public Dictionary<Client, List<Account>> Get(Func<Client, bool> filter)
+        public ICollection<Client> GetAll()
         {
-            return _clientAccounts
-                .Where(kvp => filter(kvp.Key))
-                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            return _context.Clients.ToList();
         }
 
-        public void Add(Client client)
+        public void Add(Client item)
         {
-            if (_clientAccounts.ContainsKey(client))
+            if (_context.Clients.Any(c => c.Equals(item)))
             {
-                throw new InvalidOperationException("Клиент уже существует в хранилище.");
+                throw new InvalidOperationException("Клиент с таким паспортом уже существует.");
             }
-            var defaultAccount = new Account(new Currency("USD", "Доллар США"), 0);
-            _clientAccounts[client] = new List<Account> { defaultAccount };
+
+            var defaultAccount = new Account(new Currency("USD", "Доллар США"), 0)
+            {
+                ClientId = item.Id 
+            };
+
+            item.Accounts.Add(defaultAccount);
+            
+            _context.Clients.Add(item);
+            _context.Accounts.Add(defaultAccount);
+            
+            _context.SaveChanges();
         }
 
-        public void AddDictionary(Dictionary<Client, List<Account>> clients)
+        public void Update(Guid id, Client item)
         {
-            foreach (var client in clients)
+            var existingClient = Get(id);
+            if (existingClient == null)
             {
-                if (client.Value == null || !client.Value.Any())
-                {
-                    var defaultAccount = new Account(new Currency("USD", "Доллар США"), 0);
-                    _clientAccounts[client.Key] = new List<Account> { defaultAccount };
-                }
-                else
-                {
-                    _clientAccounts[client.Key] = client.Value;
-                }
+                throw new KeyNotFoundException("Клиент не найден.");
             }
+
+            existingClient.FirstName = item.FirstName;
+            existingClient.LastName = item.LastName;
+            existingClient.PhoneNumber = item.PhoneNumber;
+            existingClient.BirthDay = item.BirthDay;
+            existingClient.Passport = item.Passport; 
+
+            _context.SaveChanges();
         }
 
-        public void Update(Client updatedClient)
+        public void Delete(Guid id)
         {
-            if (_clientAccounts.TryGetValue(updatedClient, out var existingAccounts))
+            var existingClient = Get(id);
+    
+            if (existingClient == null)
             {
-                var accounts = existingAccounts
-                    .Select(account => new Account(account.Currency, account.Amount))
-                    .ToList();
+                throw new KeyNotFoundException("Клиент не найден.");
+            }
+            
+            _context.Clients.Remove(existingClient);
+
+            _context.SaveChanges();
+        }
         
-                _clientAccounts.Remove(updatedClient); 
-                _clientAccounts[updatedClient] = accounts;
-            }
-            else
+        public ICollection<Client> GetByFilter(Func<Client, bool> filter)
+        {
+            return _context.Clients.AsQueryable()
+                .Where(filter)
+                .ToList();
+        }
+
+        public ICollection<Account> GetAccountsByClientId(Guid clientId)
+        {
+            return _context.Accounts
+                .Where(a => a.ClientId == clientId)
+                .ToList();
+        }
+
+        public void AddAccount(Guid clientId, Account account)
+        {
+            var client = Get(clientId);
+            if (client == null)
             {
-                throw new KeyNotFoundException("Клиент с указанным паспортом не найден.");
+                throw new KeyNotFoundException("Клиент не найден.");
             }
-        }
 
-        public void Delete(Client client)
-        {
-            _clientAccounts.Remove(client);
-        }
+            account.ClientId = clientId;
 
-        public void AddAccount(Client client, Account account)
-        {
-            if (_clientAccounts.ContainsKey(client))
-            {
-                _clientAccounts[client].Add(account);
-            }
-        }
-
-        public void UpdateAccount(Client client, Account updatedAccount)
-        {
-            var existingAccounts = _clientAccounts[client];
+            client.Accounts.Add(account);
             
-            var existingAccount = existingAccounts.FirstOrDefault(a => a.Equals(updatedAccount));
-            
-            if (existingAccount != null)
-            {
-                existingAccount.Amount = updatedAccount.Amount;
-            }
-            else
-            {
-                throw new InvalidOperationException("Аккаунт не найден для обновления.");
-            }
+            _context.Accounts.Add(account);
+            _context.SaveChanges();
         }
 
 
-        public void DeleteAccount(Client client, Account account)
+        public void UpdateAccount(Account account)
         {
-            if (_clientAccounts.ContainsKey(client))
+            var existingAccount = _context.Accounts.FirstOrDefault(a => a.Id == account.Id);
+    
+            if (existingAccount == null)
             {
-                var accounts = _clientAccounts[client];
-                accounts.Remove(account); 
+                throw new KeyNotFoundException("Аккаунт не найден.");
             }
-        }
 
-        public Client GetYoungestClient()
+            existingAccount.Amount = account.Amount;
+
+            _context.SaveChanges();
+        }
+        
+        public void DeleteAccount(Guid accountId)
         {
-            return _clientAccounts.Keys.OrderBy(c => c.BirthDay).FirstOrDefault();
-        }
+            var existingAccount = _context.Accounts.FirstOrDefault(a => a.Id == accountId);
 
-        public Client GetOldestClient()
-        {
-            return _clientAccounts.Keys.OrderByDescending(c => c.BirthDay).FirstOrDefault();
-        }
+            if (existingAccount == null)
+            {
+                throw new KeyNotFoundException("Аккаунт не найден.");
+            }
 
+            _context.Accounts.Remove(existingAccount);
+
+            _context.SaveChanges();
+        }
+        
         public double GetAverageAgeClient()
         {
-            return _clientAccounts.Any()
-                ? _clientAccounts.Keys
-                    .Select(c => DateTime.Now.Year - c.BirthDay.Year - (DateTime.Now.DayOfYear < c.BirthDay.DayOfYear ? 1 : 0))
+            var now = DateTime.Now;
+    
+            return _context.Clients.Any()
+                ? _context.Clients
+                    .Select(c => now.Year - c.BirthDay.Year - (now.DayOfYear < c.BirthDay.DayOfYear ? 1 : 0))
                     .Average()
                 : 0;
         }
 
-        public List<Client> GetAllClients()
-        {
-            return _clientAccounts.Keys.ToList();
-        }
-
-        public List<Account> GetClientAccounts(Client client)
-        {
-            return _clientAccounts.TryGetValue(client, out var accounts) ? accounts : new List<Account>();
-        }
     }
 }

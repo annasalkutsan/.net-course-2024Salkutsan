@@ -42,7 +42,7 @@ public class BankService
     /// <param name="client"></param>
     /// <param name="position"></param>
     /// <returns></returns>
-    public Employee ConvertClientToEmployee(Client client, string position)
+    public Employee ConvertClientToEmployee(Client client, Position  position)
     {
         return new Employee
         {

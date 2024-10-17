@@ -9,7 +9,7 @@ namespace Practice
     {
         static void Main(string[] args)
         { 
-            TestDataGenerator generator = new TestDataGenerator();
+            /*TestDataGenerator generator = new TestDataGenerator();
         
             // Генерация данных
             List<Client> clients = generator.GenerateClients(1000);
@@ -106,7 +106,7 @@ namespace Practice
             
             Client client = new Client { FirstName = "Михаил", LastName = "Ротарь", PhoneNumber = "+373 778 547 96", BirthDay = new DateTime(1991, 11, 11) };
             Employee newEmployee = bankService.ConvertClientToEmployee(client, "Менеджер");
-            Console.WriteLine($"Новый сотрудник: {newEmployee.FirstName} {newEmployee.LastName}, Должность: {newEmployee.Position}, Контракт: {newEmployee.Contract}");
+            Console.WriteLine($"Новый сотрудник: {newEmployee.FirstName} {newEmployee.LastName}, Должность: {newEmployee.Position}, Контракт: {newEmployee.Contract}");*/
         }
     }
 }
