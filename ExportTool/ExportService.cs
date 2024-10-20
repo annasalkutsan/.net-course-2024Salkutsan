@@ -1,58 +1,46 @@
 ﻿using System.Globalization;
 using BankSystem.App.Interfaces;
 using BankSystem.Data.EntityConfigurations;
-using BankSystem.Domain.Models;
 using CsvHelper;
-
+using CsvHelper.TypeConversion;
 
 namespace ExportTool
 {
-    public class ExportService
+    public class ExportService<T> where T : class
     {
-        private readonly IClientStorage _clientStorage;
+        private readonly IStorage<T> _storage;
         private readonly BankSystemDbContext _context;
-        public string _pathToDirectory { get; set; }
-        public string _csvFileName { get; set; }
 
-        public ExportService(IClientStorage clientStorage, string pathToDirectory, string csvFileName)
+        public ExportService(IStorage<T> storage, BankSystemDbContext context)
         {
-            _context = new BankSystemDbContext();
-            _clientStorage = clientStorage;
-            _pathToDirectory = pathToDirectory;
-            _csvFileName = csvFileName;
+            _storage = storage;
+            _context = context;
         }
 
-        public void ExportClientsToCsv()
+        public void ExportToCsv( string pathToDirectory, string csvFileName)
         {
-            var clients = _clientStorage.GetAll();
+            var entities = _storage.GetAll();
 
-            DirectoryInfo dirInfo = new DirectoryInfo(_pathToDirectory);
+            DirectoryInfo dirInfo = new DirectoryInfo(pathToDirectory);
             if (!dirInfo.Exists)
             {
                 dirInfo.Create();
             }
 
-            string fullPath = Path.Combine(_pathToDirectory, _csvFileName);
+            string fullPath = Path.Combine(pathToDirectory, csvFileName);
 
             using (var writer = new StreamWriter(fullPath))
             {
                 using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
-                    csv.WriteHeader<Client>();
-                    csv.NextRecord();
-
-                    foreach (var client in clients)
-                    {
-                        csv.WriteRecord(client);
-                        csv.NextRecord();
-                    }
+                    csv.WriteRecords(entities);
                 }
             }
         }
         
-        public void ImportClientsFromCsv()
+        public void ImportFromCsv(string pathToDirectory, string csvFileName)
         {
-            string fullPath = Path.Combine(_pathToDirectory, _csvFileName);
+            string fullPath = Path.Combine(pathToDirectory, csvFileName);
 
             if (!File.Exists(fullPath))
             {
@@ -63,40 +51,41 @@ namespace ExportTool
             {
                 using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
                 {
-                    var records = csv.GetRecords<dynamic>().ToList();
+                    csv.Context.TypeConverterOptionsCache.AddOptions<DateTime>(
+                        new TypeConverterOptions { Formats = new[] { "dd.MM.yyyy HH:mm:ss" } }
+                    );
+
+                    var records = csv.GetRecords<T>().ToList();
 
                     foreach (var record in records)
                     {
+                        //все свойства типа T
+                        var properties = typeof(T).GetProperties();
+
+                        foreach (var property in properties)
+                        {
+                            //является ли свойство DateTime
+                            if (property.PropertyType == typeof(DateTime))
+                            {
+                                var dateTimeValue = (DateTime)property.GetValue(record);
+
+                                //установка Kind на Utc, если он не установлен
+                                if (dateTimeValue.Kind != DateTimeKind.Utc)
+                                {
+                                    dateTimeValue = DateTime.SpecifyKind(dateTimeValue, DateTimeKind.Utc);
+                                    property.SetValue(record, dateTimeValue);
+                                }
+                            }
+                        }
+
                         try
                         {
-                            string passport = record.Passport;
-                            Guid id = Guid.Parse(record.Id);
-                            string firstName = record.FirstName;
-                            string lastName = record.LastName;
-                            string phoneNumber = record.PhoneNumber;
-
-                            DateTime birthDay = DateTime.ParseExact(record.BirthDay, "dd.MM.yyyy HH:mm:ss", CultureInfo.InvariantCulture)
-                                                   .ToUniversalTime(); 
-                            DateTime createUtc = DateTime.ParseExact(record.CreateUtc, "dd.MM.yyyy HH:mm:ss", CultureInfo.InvariantCulture)
-                                                    .ToUniversalTime(); 
-
-                            var client = new Client
-                            {
-                                Passport = passport,
-                                Id = id,
-                                FirstName = firstName,
-                                LastName = lastName,
-                                PhoneNumber = phoneNumber,
-                                BirthDay = birthDay,
-                                CreateUtc = createUtc
-                            };
-
-                            _context.Clients.Add(client);
-                            Console.WriteLine($"Клиент с ID {client.Id} добавлен успешно.");
+                            _storage.Add(record);
+                            Console.WriteLine($"Запись успешно импортирована.");
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine($"Ошибка при добавлении клиента с ID {record.Id}: {ex.Message}");
+                            Console.WriteLine($"Ошибка при импорте записи: {ex.Message}");
                         }
                     }
                     _context.SaveChanges();
