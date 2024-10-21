@@ -12,7 +12,7 @@ namespace BankSystem.App.Services
                 .RuleFor(c => c.LastName, f => f.Name.LastName())
                 .RuleFor(c => c.PhoneNumber, f => $"+373 777 55 {f.Random.Number(100, 999)}")
                 .RuleFor(c => c.Passport, f => $"{f.Random.AlphaNumeric(2).ToUpper()}{f.Random.Number(100000, 999999)}")
-                .RuleFor(e => e.BirthDay, f => f.Date.Past(100, DateTime.Now.AddYears(-18)));
+                .RuleFor(e => e.BirthDay, f => f.Date.Past(100, DateTime.UtcNow.AddYears(-18)));
 
             return clientFaker.Generate(count);
         }
