@@ -57,5 +57,14 @@ namespace BankSystem.App.Services
 
             return accountFaker.Generate(count);
         }
+        
+        public Account GenerateAccount()
+        {
+            var accountFaker = new Faker<Account>()
+                .RuleFor(a => a.Currency,
+                    f => new Currency(f.Finance.Currency().Code, f.Finance.Currency().Description))
+                .RuleFor(a => a.Amount, 0); 
+            return accountFaker.Generate();
+        }
     }
 }
