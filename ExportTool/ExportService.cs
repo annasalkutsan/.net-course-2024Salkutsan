@@ -10,10 +10,15 @@ namespace ExportTool
     public class ExportService<T> where T : class
     {
         private readonly IStorage<T> _storage;
+        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+        private const long MaxFileSize = 30 * 1024; // 30 KB
+
         public ExportService(IStorage<T> storage)
         {
             _storage = storage;
         }
+        public ExportService() { }
+        
         public void ExportToJson(string pathToDirectory, string jsonFileName)
         {
             var entities = _storage.GetAll();
@@ -25,12 +30,100 @@ namespace ExportTool
             }
 
             string fullPath = Path.Combine(pathToDirectory, jsonFileName);
-
             string json = JsonSerializer.Serialize(entities);
-
             File.WriteAllText(fullPath, json);
         }
         
+        public void ExportToJson(string pathToDirectory, string jsonFileName, ICollection<T> entities)
+        {
+            _semaphore.Wait(); // блокировка доступа к файлу
+            try
+            {
+                DirectoryInfo dirInfo = new DirectoryInfo(pathToDirectory);
+                if (!dirInfo.Exists)
+                {
+                    dirInfo.Create();
+                }
+
+                string fullPath = Path.Combine(pathToDirectory, jsonFileName);
+
+                // Проверяем размер файла
+                if (File.Exists(fullPath) && new FileInfo(fullPath).Length > MaxFileSize)
+                {
+                    // Если файл превышает размер, создаем новый
+                    jsonFileName = Path.GetFileNameWithoutExtension(jsonFileName) + $"_{Guid.NewGuid()}.json";
+                    fullPath = Path.Combine(pathToDirectory, jsonFileName);
+                }
+
+                // Читаем существующий файл, если он есть
+                List<T> existingEntities = new List<T>();
+                if (File.Exists(fullPath))
+                {
+                    string existingJson = File.ReadAllText(fullPath);
+                    if (!string.IsNullOrWhiteSpace(existingJson))
+                    {
+                        existingEntities = JsonSerializer.Deserialize<List<T>>(existingJson);
+                    }
+                }
+
+                // Объединяем существующие и новые сущности
+                existingEntities.AddRange(entities);
+
+                // Сериализуем и записываем данные
+                string json = JsonSerializer.Serialize(existingEntities);
+                File.WriteAllText(fullPath, json);
+            }
+            finally
+            {
+                _semaphore.Release(); // освобождаем доступ к файлу
+            }
+        }
+        public void ExportToJson(string pathToDirectory, string jsonFileName, T entity)
+        {
+            DirectoryInfo dirInfo = new DirectoryInfo(pathToDirectory);
+            if (!dirInfo.Exists)
+            {
+                dirInfo.Create();
+            }
+
+            string fullPath = Path.Combine(pathToDirectory, jsonFileName);
+            string json = JsonSerializer.Serialize(entity);
+            File.WriteAllText(fullPath, json);
+        }
+ 
+        public T ImportEntityFromJson(string pathToDirectory, string jsonFileName)
+        {
+            string fullPath = Path.Combine(pathToDirectory, jsonFileName);
+
+            if (!File.Exists(fullPath))
+            {
+                throw new FileNotFoundException("JSON файл не найден.");
+            }
+
+            string json = File.ReadAllText(fullPath);
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true 
+            };
+            
+            var records = JsonSerializer.Deserialize<List<T>>(json, options);
+            return records?.FirstOrDefault(); 
+        }
+
+        public ICollection<T> ImportCollectionFromJson(string pathToDirectory, string jsonFileName)
+        {
+            string fullPath = Path.Combine(pathToDirectory, jsonFileName);
+            if (!File.Exists(fullPath))
+            {
+                throw new FileNotFoundException("JSON файл не найден.");
+            }
+
+            string json = File.ReadAllText(fullPath);
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var records = JsonSerializer.Deserialize<List<T>>(json, options);
+
+            return records;
+        }
         
         public void ImportFromJson(string pathToDirectory, string jsonFileName)
         {
