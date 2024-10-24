@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Text.Json;
 using BankSystem.App.Interfaces;
 using BankSystem.Data.EntityConfigurations;
 using CsvHelper;
@@ -9,12 +10,58 @@ namespace ExportTool
     public class ExportService<T> where T : class
     {
         private readonly IStorage<T> _storage;
-        private readonly BankSystemDbContext _context;
-
-        public ExportService(IStorage<T> storage, BankSystemDbContext context)
+        public ExportService(IStorage<T> storage)
         {
             _storage = storage;
-            _context = context;
+        }
+        public void ExportToJson(string pathToDirectory, string jsonFileName)
+        {
+            var entities = _storage.GetAll();
+
+            DirectoryInfo dirInfo = new DirectoryInfo(pathToDirectory);
+            if (!dirInfo.Exists)
+            {
+                dirInfo.Create();
+            }
+
+            string fullPath = Path.Combine(pathToDirectory, jsonFileName);
+
+            string json = JsonSerializer.Serialize(entities);
+
+            File.WriteAllText(fullPath, json);
+        }
+        
+        
+        public void ImportFromJson(string pathToDirectory, string jsonFileName)
+        {
+            string fullPath = Path.Combine(pathToDirectory, jsonFileName);
+
+            if (!File.Exists(fullPath))
+            {
+                throw new FileNotFoundException("JSON файл не найден.");
+            }
+
+            string json = File.ReadAllText(fullPath);
+
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true // для разных регистров свойств
+            };
+
+            var records = JsonSerializer.Deserialize<List<T>>(json, options);
+
+            foreach (var record in records)
+            {
+                try
+                {
+                    _storage.Add(record);
+                    Console.WriteLine($"Запись успешно импортирована.");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Ошибка при импорте записи: {ex.Message}");
+                }
+            }
         }
 
         public void ExportToCsv( string pathToDirectory, string csvFileName)
@@ -88,7 +135,6 @@ namespace ExportTool
                             Console.WriteLine($"Ошибка при импорте записи: {ex.Message}");
                         }
                     }
-                    _context.SaveChanges();
                 }
             }
         }
