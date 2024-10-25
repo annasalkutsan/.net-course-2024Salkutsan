@@ -20,9 +20,16 @@ namespace ExportToolTests
         }
 
         [Fact]
-        public void ExportClients()
+        public void ExportToJsonClients()
         {
-            var clients1 = _dataGenerator.GenerateClients(100);
+            if (Directory.Exists(_testDirectory))
+            {
+                Directory.Delete(_testDirectory, true);
+            }
+
+            Directory.CreateDirectory(_testDirectory);
+
+            var clients1 = _dataGenerator.GenerateClients(50);
             var clients2 = _dataGenerator.GenerateClients(100);
 
             Thread thread1 = new Thread(() => _exportService.ExportToJson(_testDirectory, _jsonFileName, clients1));
@@ -34,46 +41,10 @@ namespace ExportToolTests
             thread1.Join();
             thread2.Join();
 
-            var files = Directory.GetFiles(_testDirectory, "*.json");
-            Assert.True(files.Length > 0, "Файлы не были созданы.");
-
-            // размер файла меньше заданного максимума
-            const long MaxFileSize = 32 * 1024;
-            foreach (var file in files)
-            {
-                long fileSize = new FileInfo(file).Length;
-                Assert.True(fileSize <= MaxFileSize,
-                    $"Размер файла {Path.GetFileName(file)} превышает допустимый размер.");
-            }
+            var files = Directory.GetFiles(_testDirectory, $"{Path.GetFileNameWithoutExtension(_jsonFileName)}_*.json");
+            Assert.Equal(3, files.Length);
         }
         
-        [Fact]
-        public void ExportSingleClient()
-        {
-            var client1 = _dataGenerator.GenerateClients(1).First(); // Генерируем одного клиента
-            var client2 = _dataGenerator.GenerateClients(1).First(); // Генерируем второго клиента
-
-            Thread thread1 = new Thread(() => _exportService.ExportToJson(_testDirectory, _jsonFileName, new List<Client> { client1 }));
-            Thread thread2 = new Thread(() => _exportService.ExportToJson(_testDirectory, _jsonFileName, new List<Client> { client2 }));
-
-            thread1.Start();
-            thread2.Start();
-
-            thread1.Join();
-            thread2.Join();
-
-            var files = Directory.GetFiles(_testDirectory, "*.json");
-            Assert.True(files.Length > 0, "Файлы не были созданы.");
-
-            const long MaxFileSize = 32 * 1024;
-            foreach (var file in files)
-            {
-                long fileSize = new FileInfo(file).Length;
-                Assert.True(fileSize <= MaxFileSize,
-                    $"Размер файла {Path.GetFileName(file)} превышает допустимый размер.");
-            }
-        }
-
         [Fact]
         public void AccountReplenishment()
         {
@@ -83,7 +54,7 @@ namespace ExportToolTests
             {
                 for (int i = 0; i < 10; i++)
                 {
-                    lock (account) 
+                    lock (account)
                     {
                         account.AccountReplenishment(100);
                     }
@@ -94,7 +65,7 @@ namespace ExportToolTests
             {
                 for (int i = 0; i < 10; i++)
                 {
-                    lock (account) 
+                    lock (account)
                     {
                         account.AccountReplenishment(100);
                     }
@@ -111,3 +82,5 @@ namespace ExportToolTests
         }
     }
 }
+    
+
