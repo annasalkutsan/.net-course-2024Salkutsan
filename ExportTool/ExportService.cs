@@ -47,27 +47,23 @@ namespace ExportTool
 
             lock (_lock) 
             {
-                using (var enumerator = entities.GetEnumerator())
+                foreach (var entity in entities)
                 {
-                    while (enumerator.MoveNext())
-                    {
-                        string jsonEntity = JsonSerializer.Serialize(enumerator.Current);
-                        byte[] entityBytes = System.Text.Encoding.UTF8.GetBytes(jsonEntity + Environment.NewLine);
+                    string jsonEntity = JsonSerializer.Serialize(entity);
+                    byte[] entityBytes = System.Text.Encoding.UTF8.GetBytes(jsonEntity + Environment.NewLine);
                     
-                        // провека текущего размера файла перед записью
-                        if (currentFileSize + entityBytes.Length > MaxFileSize)
-                        {
-                            // закрываем текущий файл и создаем новый
-                            fileCounter++;
-                            currentFileName = Path.Combine(pathToDirectory, $"{Path.GetFileNameWithoutExtension(jsonFileName)}_{fileCounter}.json");
-                            currentFileSize = 0; // сбрасываем размер файла
-                        }
-
-                        using (FileStream fileStream = new FileStream(currentFileName, FileMode.Append, FileAccess.Write, FileShare.None))
-                        {
-                            fileStream.Write(entityBytes, 0, entityBytes.Length);
-                            currentFileSize += entityBytes.Length; // увеличиваем текущий размер файла
-                        }
+                    // провека текущего размера файла перед записью
+                    if (currentFileSize + entityBytes.Length > MaxFileSize)
+                    { 
+                        // закрываем текущий файл и создаем новый
+                        fileCounter++; 
+                        currentFileName = Path.Combine(pathToDirectory, $"{Path.GetFileNameWithoutExtension(jsonFileName)}_{fileCounter}.json"); 
+                        currentFileSize = 0; // сбрасываем размер файла
+                    }
+                    using (FileStream fileStream = new FileStream(currentFileName, FileMode.Append, FileAccess.Write, FileShare.None))
+                    {
+                        fileStream.Write(entityBytes, 0, entityBytes.Length);
+                        currentFileSize += entityBytes.Length; // увеличиваем текущий размер файла
                     }
                 }
             }
