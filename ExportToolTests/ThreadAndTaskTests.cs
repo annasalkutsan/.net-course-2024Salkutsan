@@ -1,4 +1,5 @@
-﻿using BankSystem.App.Services;
+﻿using System.Text.Json;
+using BankSystem.App.Services;
 using BankSystem.Domain.Models;
 using ExportTool;
 using Xunit;
@@ -26,7 +27,6 @@ namespace ExportToolTests
             {
                 Directory.Delete(_testDirectory, true);
             }
-
             Directory.CreateDirectory(_testDirectory);
 
             var clients1 = _dataGenerator.GenerateClients(50);
@@ -43,6 +43,27 @@ namespace ExportToolTests
 
             var files = Directory.GetFiles(_testDirectory, $"{Path.GetFileNameWithoutExtension(_jsonFileName)}_*.json");
             Assert.Equal(3, files.Length);
+
+            int expectedTotalClients = clients1.Count + clients2.Count;
+            int actualTotalClients = 0;
+
+            foreach (var file in files)
+            {
+                var lines = File.ReadAllLines(file); //каждая строка как отдельный JSON объект
+                actualTotalClients += lines.Length;
+
+                //проверка десериализации каждой строки как объекта Client
+                foreach (var line in lines)
+                {
+                    var client = JsonSerializer.Deserialize<Client>(line);
+
+                    Assert.NotNull(client);
+                    Assert.True(!string.IsNullOrEmpty(client.FirstName) && !string.IsNullOrEmpty(client.Passport), "Клиент должен содержать как минимум FirstName и Passport");
+                }
+            }
+
+            //проверка общего количества клиентов
+            Assert.Equal(expectedTotalClients, actualTotalClients);
         }
         
         [Fact]
@@ -54,21 +75,15 @@ namespace ExportToolTests
             {
                 for (int i = 0; i < 10; i++)
                 {
-                    lock (account)
-                    {
-                        account.AccountReplenishment(100);
-                    }
+                   account.AccountReplenishment(100);
                 }
             });
 
             Thread thread2 = new Thread(() =>
             {
                 for (int i = 0; i < 10; i++)
-                {
-                    lock (account)
-                    {
-                        account.AccountReplenishment(100);
-                    }
+                { 
+                    account.AccountReplenishment(100);
                 }
             });
 
