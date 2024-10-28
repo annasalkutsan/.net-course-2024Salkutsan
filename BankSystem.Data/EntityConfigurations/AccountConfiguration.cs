@@ -21,6 +21,9 @@ public class AccountConfiguration : IEntityTypeConfiguration<Account>
 
         builder.Property(a => a.CreateUtc)
             .HasColumnName("create_utc");
+        
+        builder.Property(a => a.LastUpdated)
+            .HasColumnName("last_updated_utc");
 
         builder.HasOne(a => a.Client)
             .WithMany(c => c.Accounts)

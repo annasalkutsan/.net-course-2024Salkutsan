@@ -9,6 +9,7 @@ public class Account
     public Guid CurrencyId { get; set; }
     public Currency Currency { get; set; }
     public DateTime CreateUtc { get; set; } = DateTime.UtcNow;
+    public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
     
     public Account(Currency currency, decimal amount)
     {
@@ -40,6 +41,27 @@ public class Account
         lock (_balanceLock)
         {
             Amount += amount;
+        }
+    }
+    
+    public bool Withdraw(decimal amount)
+    {
+        if (amount <= 0)
+            throw new ArgumentException("Сумма списания должна быть больше нуля.");
+
+        lock (_balanceLock)
+        {
+            if (Amount >= amount)
+            {
+                Amount -= amount;
+                LastUpdated = DateTime.UtcNow; // время последнего изменения
+                return true;
+            }
+            else
+            {
+                Console.WriteLine($"Недостаточно средств на счете. Списание {amount} не выполнено.");
+                return false;
+            }
         }
     }
 }
