@@ -30,4 +30,16 @@ public class Account
     {
         return HashCode.Combine(Id);
     }
+    
+    private readonly object _balanceLock = new object();
+    public void AccountReplenishment(decimal amount)
+    {
+        if (amount < 0)
+            throw new ArgumentException("Сумма пополнения счета не может быть меньше нуля.");
+
+        lock (_balanceLock)
+        {
+            Amount += amount;
+        }
+    }
 }

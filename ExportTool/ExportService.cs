@@ -1,7 +1,6 @@
 ﻿using System.Globalization;
 using System.Text.Json;
 using BankSystem.App.Interfaces;
-using BankSystem.Data.EntityConfigurations;
 using CsvHelper;
 using CsvHelper.TypeConversion;
 
@@ -10,10 +9,15 @@ namespace ExportTool
     public class ExportService<T> where T : class
     {
         private readonly IStorage<T> _storage;
+        private static readonly object _lock = new object();
+        private const int MaxFileSize = 15 * 1024; // 15 kB
+
         public ExportService(IStorage<T> storage)
         {
             _storage = storage;
         }
+        public ExportService() { }
+        
         public void ExportToJson(string pathToDirectory, string jsonFileName)
         {
             var entities = _storage.GetAll();
@@ -25,12 +29,92 @@ namespace ExportTool
             }
 
             string fullPath = Path.Combine(pathToDirectory, jsonFileName);
-
             string json = JsonSerializer.Serialize(entities);
-
             File.WriteAllText(fullPath, json);
         }
         
+        public void ExportToJson(string pathToDirectory, string jsonFileName, ICollection<T> entities)
+        {
+            DirectoryInfo dirInfo = new DirectoryInfo(pathToDirectory);
+            if (!dirInfo.Exists)
+            {
+                dirInfo.Create();
+            }
+
+            int fileCounter = 1;
+            string currentFileName = Path.Combine(pathToDirectory, $"{Path.GetFileNameWithoutExtension(jsonFileName)}_{fileCounter}.json");
+            long currentFileSize = 0;
+
+            lock (_lock) 
+            {
+                foreach (var entity in entities)
+                {
+                    string jsonEntity = JsonSerializer.Serialize(entity);
+                    byte[] entityBytes = System.Text.Encoding.UTF8.GetBytes(jsonEntity + Environment.NewLine);
+                    
+                    // провека текущего размера файла перед записью
+                    if (currentFileSize + entityBytes.Length > MaxFileSize)
+                    { 
+                        // закрываем текущий файл и создаем новый
+                        fileCounter++; 
+                        currentFileName = Path.Combine(pathToDirectory, $"{Path.GetFileNameWithoutExtension(jsonFileName)}_{fileCounter}.json"); 
+                        currentFileSize = 0; // сбрасываем размер файла
+                    }
+                    using (FileStream fileStream = new FileStream(currentFileName, FileMode.Append, FileAccess.Write, FileShare.None))
+                    {
+                        fileStream.Write(entityBytes, 0, entityBytes.Length);
+                        currentFileSize += entityBytes.Length; // увеличиваем текущий размер файла
+                    }
+                }
+            }
+        }
+        
+        public void ExportToJson(string pathToDirectory, string jsonFileName, T entity)
+        {
+            DirectoryInfo dirInfo = new DirectoryInfo(pathToDirectory);
+            if (!dirInfo.Exists)
+            {
+                dirInfo.Create();
+            }
+
+            string fullPath = Path.Combine(pathToDirectory, jsonFileName);
+            string json = JsonSerializer.Serialize(entity);
+            File.WriteAllText(fullPath, json);
+        }
+ 
+        public T ImportEntityFromJson(string pathToDirectory, string jsonFileName)
+        {
+            string fullPath = Path.Combine(pathToDirectory, jsonFileName);
+
+            if (!File.Exists(fullPath))
+            {
+                throw new FileNotFoundException("JSON файл не найден.");
+            }
+
+            string json = File.ReadAllText(fullPath);
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true 
+            };
+            
+            var records = JsonSerializer.Deserialize<List<T>>(json, options);
+            return records?.FirstOrDefault(); 
+        }
+
+        public ICollection<T> ImportCollectionFromJson(string pathToDirectory, string jsonFileName)
+        {
+            string fullPath = Path.Combine(pathToDirectory, jsonFileName);
+            if (!File.Exists(fullPath))
+            {
+                throw new FileNotFoundException("JSON файл не найден.");
+            }
+
+            string json = File.ReadAllText(fullPath);
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var records = JsonSerializer.Deserialize<List<T>>(json, options);
+
+            return records;
+        }
         
         public void ImportFromJson(string pathToDirectory, string jsonFileName)
         {
