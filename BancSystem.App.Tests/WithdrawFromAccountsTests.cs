@@ -20,11 +20,9 @@ namespace BancSystem.App.Tests
 
             foreach (var account in _accounts)
             {
-                // Создаем задачу для списания средств с каждого счета
                 withdrawalTasks.Add(Task.Run(() => account.Withdraw(amount)));
             }
 
-            // Ждем завершения всех задач
             return await Task.WhenAll(withdrawalTasks);
         }
         
@@ -41,13 +39,13 @@ namespace BancSystem.App.Tests
             Assert.Equal(_accounts.Count, results.Length); 
             for (int i = 0; i < results.Length; i++)
             {
-                if (results[i]) // Проверяем, было ли списание успешным
+                if (results[i]) //было ли списание успешным
                 {
-                    Assert.Equal(80m, _accounts[i].Amount); // Ожидаем, что сумма уменьшилась до 80
+                    Assert.Equal(80m, _accounts[i].Amount); //ожидаем, что сумма уменьшилась до 80 (изначально = 100)
                 }
                 else
                 {
-                    Assert.Equal(100m, _accounts[i].Amount); // Ожидаем, что сумма осталась без изменений
+                    Assert.Equal(100m, _accounts[i].Amount);
                 }
             }
         }

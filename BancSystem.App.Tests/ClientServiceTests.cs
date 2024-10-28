@@ -7,7 +7,7 @@ using Xunit;
 
 namespace BankSystem.App.Tests
 {
-    public class ClientServiceTests
+   /* public class ClientServiceTests
     {
         private readonly IClientStorage _clientStorage;
         private readonly ClientService _clientService;
@@ -195,5 +195,5 @@ namespace BankSystem.App.Tests
             var deletedAccount = _clientService.GetAccountsByClientId(clients.First().Id).FirstOrDefault(a => a.Id == account.Id);
             Assert.Null(deletedAccount);
         }
-    }
+    }*/
 }

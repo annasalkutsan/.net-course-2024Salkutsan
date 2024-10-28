@@ -8,4 +8,6 @@ public interface IClientStorage : IStorage<Client>
     Task AddAccountAsync(Guid clientId, Account account);
     Task UpdateAccountAsync(Account account);
     Task DeleteAccountAsync(Guid accountId);
+    Task<ICollection<Account>> GetAllAccountsAsync();
+    Task<Account> GetAccountByIdAsync(Guid accountId);
 }

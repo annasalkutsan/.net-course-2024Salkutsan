@@ -130,6 +130,16 @@ namespace BankSystem.Data.Storages
             await _context.SaveChangesAsync();
         }
 
+        public async Task<ICollection<Account>> GetAllAccountsAsync()
+        {
+            return await _context.Accounts.ToListAsync();
+        }
+
+        public async Task<Account> GetAccountByIdAsync(Guid accountId)
+        {
+            return await _context.Accounts.FindAsync(accountId);        
+        }
+
         public async Task<double> GetAverageAgeClientAsync()
         {
             var now = DateTime.Now;
