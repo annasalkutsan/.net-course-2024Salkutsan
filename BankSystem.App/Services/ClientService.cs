@@ -13,9 +13,9 @@ namespace BankSystem.App.Services
             _clientStorage = clientStorage;
         }
 
-        public Client GetClient(Guid id)
+        public async Task<Client> GetClientAsync(Guid id)
         {
-            var client = _clientStorage.Get(id);
+            var client = await _clientStorage.GetAsync(id);
             if (client == null)
             {
                 throw new KeyNotFoundException("Клиент не найден.");
@@ -23,29 +23,28 @@ namespace BankSystem.App.Services
             return client;
         }
 
-        public ICollection<Client> GetAllClients()
+        public async Task<ICollection<Client>> GetAllClientsAsync()
         {
-            return _clientStorage.GetAll();
+            return await _clientStorage.GetAllAsync();
         }
 
-        public void AddClient(Client client)
+        public async Task AddClientAsync(Client client)
         {
-            ValidateClient(client); 
-            _clientStorage.Add(client);
+            await ValidateClientAsync(client);
+            await _clientStorage.AddAsync(client);
         }
 
-        public void UpdateClient(Guid clientId, Client updatedClient)
+        public async Task UpdateClientAsync(Guid clientId, Client updatedClient)
         {
-            _clientStorage.Update(clientId, updatedClient);
+            await _clientStorage.UpdateAsync(clientId, updatedClient);
         }
 
-
-        public void DeleteClient(Guid clientId)
+        public async Task DeleteClientAsync(Guid clientId)
         {
-            _clientStorage.Delete(clientId);
+            await _clientStorage.DeleteAsync(clientId);
         }
 
-        public ICollection<Client> GetClientsByFilter(
+        public async Task<ICollection<Client>> GetClientsByFilterAsync(
             string lastName = null, 
             string phoneNumber = null, 
             string passport = null, 
@@ -54,39 +53,37 @@ namespace BankSystem.App.Services
             int pageNumber = 1, // номер страницы
             int pageSize = 10)  // количество записей на странице
         {
-            // все клиенты по фильтру
-            var query = _clientStorage.GetByFilter(c => 
+            var clients = await _clientStorage.GetByFilterAsync(c => 
                 (string.IsNullOrEmpty(lastName) || c.LastName == lastName) &&
                 (string.IsNullOrEmpty(phoneNumber) || c.PhoneNumber == phoneNumber) &&
                 (string.IsNullOrEmpty(passport) || c.Passport == passport) &&
                 (!birthStart.HasValue || c.BirthDay >= birthStart.Value) &&
                 (!birthEnd.HasValue || c.BirthDay <= birthEnd.Value));
     
-            // пагинация
-            return query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+            return clients.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
         }
 
-        public ICollection<Account> GetAccountsByClientId(Guid clientId)
+        public async Task<ICollection<Account>> GetAccountsByClientIdAsync(Guid clientId)
         {
-            return _clientStorage.GetAccountsByClientId(clientId);
+            return await _clientStorage.GetAccountsByClientIdAsync(clientId);
         }
 
-        public void AddAccount(Guid clientId, Account account)
+        public async Task AddAccountAsync(Guid clientId, Account account)
         {
-            _clientStorage.AddAccount(clientId, account);
+            await _clientStorage.AddAccountAsync(clientId, account);
         }
 
-        public void UpdateAccount(Account account)
+        public async Task UpdateAccountAsync(Account account)
         {
-            _clientStorage.UpdateAccount(account);
+            await _clientStorage.UpdateAccountAsync(account);
         }
 
-        public void DeleteAccount(Guid accountId)
+        public async Task DeleteAccountAsync(Guid accountId)
         {
-            _clientStorage.DeleteAccount(accountId);
+            await _clientStorage.DeleteAccountAsync(accountId);
         }
         
-        private void ValidateClient(Client client)
+        private async Task ValidateClientAsync(Client client)
         {
             if (client == null)
             {
@@ -103,7 +100,8 @@ namespace BankSystem.App.Services
                 throw new PassportException();
             }
 
-            if (_clientStorage.GetAll().Any(c => c.Passport == client.Passport && c.Id != client.Id))
+            var clients = await _clientStorage.GetAllAsync();
+            if (clients.Any(c => c.Passport == client.Passport && c.Id != client.Id))
             {
                 throw new InvalidOperationException("Клиент с таким паспортом уже существует.");
             }

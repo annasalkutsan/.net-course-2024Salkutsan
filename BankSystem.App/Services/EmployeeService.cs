@@ -13,9 +13,9 @@ namespace BankSystem.App.Services
             _employeeStorage = employeeStorage;
         }
 
-        public Employee GetEmployee(Guid id)
+        public async Task<Employee> GetEmployeeAsync(Guid id)
         {
-            var employee = _employeeStorage.Get(id);
+            var employee = await _employeeStorage.GetAsync(id);
             if (employee == null)
             {
                 throw new KeyNotFoundException("Сотрудник не найден.");
@@ -23,46 +23,45 @@ namespace BankSystem.App.Services
             return employee;
         }
 
-        public ICollection<Employee> GetAllEmployees()
+        public async Task<ICollection<Employee>> GetAllEmployeesAsync()
         {
-            return _employeeStorage.GetAll();
+            return await _employeeStorage.GetAllAsync();
         }
 
-        public void AddEmployee(Employee employee)
+        public async Task AddEmployeeAsync(Employee employee)
         {
-            ValidateEmployee(employee);
-            _employeeStorage.Add(employee);
+            await ValidateEmployeeAsync(employee);
+            await _employeeStorage.AddAsync(employee);
         }
 
-        public void UpdateEmployee(Guid idEmployee, Employee employee)
+        public async Task UpdateEmployeeAsync(Guid idEmployee, Employee employee)
         {
-            ValidateEmployee(employee);
-            _employeeStorage.Update(idEmployee, employee);
+            await ValidateEmployeeAsync(employee);
+            await _employeeStorage.UpdateAsync(idEmployee, employee);
         }
 
-        public void DeleteEmployee(Guid idEmployee)
+        public async Task DeleteEmployeeAsync(Guid idEmployee)
         {
-            _employeeStorage.Delete(idEmployee);
+            await _employeeStorage.DeleteAsync(idEmployee);
         }
 
-        public ICollection<Employee> GetEmployeesByFilter(
+        public async Task<ICollection<Employee>> GetEmployeesByFilterAsync(
             string lastName = null, 
             string phoneNumber = null, 
             string positionName = null,
             int pageNumber = 1, // номер страницы
             int pageSize = 10)  // количество записей на странице
         {
-            // все сотрудники по фильтру
-            var query = _employeeStorage.GetByFilter(e =>
+            var employees = await _employeeStorage.GetByFilterAsync(e =>
                 (string.IsNullOrWhiteSpace(lastName) || e.LastName.Contains(lastName, StringComparison.OrdinalIgnoreCase)) &&
                 (string.IsNullOrWhiteSpace(phoneNumber) || e.PhoneNumber.Contains(phoneNumber)) &&
                 (string.IsNullOrWhiteSpace(positionName) || (e.Position != null && e.Position.Title.Contains(positionName, StringComparison.OrdinalIgnoreCase))));
 
-            // пагинация
-            return query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+            // Пагинация
+            return employees.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
         }
         
-        private void ValidateEmployee(Employee employee)
+        private async Task ValidateEmployeeAsync(Employee employee)
         {
             if (employee == null)
             {
@@ -74,7 +73,8 @@ namespace BankSystem.App.Services
                 throw new PhoneNumberException();
             }
 
-            if (_employeeStorage.GetAll().Any(e => e.Equals(employee) && e.Id != employee.Id))
+            var employees = await _employeeStorage.GetAllAsync();
+            if (employees.Any(e => e.Equals(employee) && e.Id != employee.Id))
             {
                 throw new InvalidOperationException("Сотрудник с таким номером телефона уже существует.");
             }
