@@ -1,63 +1,63 @@
 ﻿using BankSystem.App.Interfaces;
 using BankSystem.Data.EntityConfigurations;
+using Microsoft.EntityFrameworkCore;
 
-namespace BankSystem.Data.Storages;
-
-public class CurrencyStorage: IStorage<Currency>
+namespace BankSystem.Data.Storages
 {
-    private readonly BankSystemDbContext _context;
+    public class CurrencyStorage : IStorage<Currency>
+    {
+        private readonly BankSystemDbContext _context;
 
-    public CurrencyStorage(BankSystemDbContext context)
-    {
-        _context = context;
-    }
-
-    public Currency Get(Guid id)
-    {
-        return _context.Currencies.Find(id);
-    }
-
-    public ICollection<Currency> GetAll()
-    {
-        return _context.Currencies.ToList();
-    }
-
-    public ICollection<Currency> GetByFilter(Func<Currency, bool> filter)
-    {
-        return _context.Currencies.AsQueryable()
-            .Where(filter)
-            .ToList();
-    }
-    
-    public void Add(Currency item)
-    {
-        _context.Currencies.Add(item);
-        _context.SaveChanges();
-    }
-
-    public void Update(Guid id, Currency item)
-    {
-        var existingCurrency = Get(id);
-        if (existingCurrency == null)
+        public CurrencyStorage(BankSystemDbContext context)
         {
-            throw new KeyNotFoundException("Валюта не найдена.");
+            _context = context;
         }
 
-        existingCurrency.Code = item.Code;
-        existingCurrency.Name = item.Name;
-
-        _context.SaveChanges();
-    }
-
-    public void Delete(Guid id)
-    {
-        var existingCurrency = Get(id);
-        if (existingCurrency == null)
+        public async Task<Currency> GetAsync(Guid id)
         {
-            throw new KeyNotFoundException("Валюта не найдена.");
+            return await _context.Currencies.FindAsync(id);
         }
 
-        _context.Currencies.Remove(existingCurrency);
-        _context.SaveChanges();
+        public async Task<ICollection<Currency>> GetAllAsync()
+        {
+            return await _context.Currencies.ToListAsync();
+        }
+
+        public async Task<ICollection<Currency>> GetByFilterAsync(Func<Currency, bool> filter)
+        {
+            return await Task.Run(() => _context.Currencies.AsQueryable().Where(filter).ToList());
+        }
+
+        public async Task AddAsync(Currency item)
+        {
+            await _context.Currencies.AddAsync(item);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateAsync(Guid id, Currency item)
+        {
+            var existingCurrency = await GetAsync(id);
+            if (existingCurrency == null)
+            {
+                throw new KeyNotFoundException("Валюта не найдена.");
+            }
+
+            existingCurrency.Code = item.Code;
+            existingCurrency.Name = item.Name;
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteAsync(Guid id)
+        {
+            var existingCurrency = await GetAsync(id);
+            if (existingCurrency == null)
+            {
+                throw new KeyNotFoundException("Валюта не найдена.");
+            }
+
+            _context.Currencies.Remove(existingCurrency);
+            await _context.SaveChangesAsync();
+        }
     }
 }
