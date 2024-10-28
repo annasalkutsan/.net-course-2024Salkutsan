@@ -1,6 +1,7 @@
 ﻿using BankSystem.Domain.Models;
 using BankSystem.App.Interfaces;
 using BankSystem.Data.EntityConfigurations;
+using Microsoft.EntityFrameworkCore;
 
 namespace BankSystem.Data.Storages
 {
@@ -13,30 +14,30 @@ namespace BankSystem.Data.Storages
             _context = context;
         }
 
-        public Employee Get(Guid id)
+        public async Task<Employee> GetAsync(Guid id)
         {
-            return _context.Employees.Find(id);
+            return await _context.Employees.FindAsync(id);
         }
 
-        public ICollection<Employee> GetAll()
+        public async Task<ICollection<Employee>> GetAllAsync()
         {
-            return _context.Employees.ToList();
+            return await _context.Employees.ToListAsync();
         }
 
-        public void Add(Employee item)
+        public async Task AddAsync(Employee item)
         {
-            if (_context.Employees.Any(e => e.Equals(item)))
+            if (await _context.Employees.AnyAsync(e => e.Equals(item)))
             {
                 throw new InvalidOperationException("Сотрудник с таким номером телефона уже существует.");
             }
 
-            _context.Employees.Add(item);
-            _context.SaveChanges();
+            await _context.Employees.AddAsync(item);
+            await _context.SaveChangesAsync();
         }
 
-        public void Update(Guid id, Employee item)
+        public async Task UpdateAsync(Guid id, Employee item)
         {
-            var existingEmployee = Get(item.Id);
+            var existingEmployee = await GetAsync(id);
             if (existingEmployee == null)
             {
                 throw new KeyNotFoundException("Сотрудник не найден.");
@@ -48,32 +49,33 @@ namespace BankSystem.Data.Storages
             existingEmployee.LastName = item.LastName;
             existingEmployee.PhoneNumber = item.PhoneNumber;
             existingEmployee.BirthDay = item.BirthDay;
-           
+
             if (item.PositionId.HasValue)
             {
                 existingEmployee.PositionId = item.PositionId.Value;
             }
-            
-            _context.SaveChanges();
+
+            await _context.SaveChangesAsync();
         }
 
-        public void Delete(Guid id)
+        public async Task DeleteAsync(Guid id)
         {
-            var existingEmployee = Get(id);
+            var existingEmployee = await GetAsync(id);
             if (existingEmployee == null)
             {
                 throw new KeyNotFoundException("Сотрудник не найден.");
             }
 
             _context.Employees.Remove(existingEmployee);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
-        public ICollection<Employee> GetByFilter(Func<Employee, bool> filter)
+        public async Task<ICollection<Employee>> GetByFilterAsync(Func<Employee, bool> filter)
         {
-            return _context.Employees.AsQueryable()
-                .Where(filter)
-                .ToList();
+            return await Task.Run(() =>
+                _context.Employees.AsQueryable()
+                    .Where(filter)
+                    .ToList());
         }
     }
 }

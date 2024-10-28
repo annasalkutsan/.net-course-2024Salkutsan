@@ -1,6 +1,7 @@
 ﻿using BankSystem.App.Interfaces;
 using BankSystem.Data.EntityConfigurations;
 using BankSystem.Domain.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace BankSystem.Data.Storages
 {
@@ -12,39 +13,40 @@ namespace BankSystem.Data.Storages
         {
             _context = context;
         }
-        public Client Get(Guid id)
+
+        public async Task<Client> GetAsync(Guid id)
         {
-            return _context.Clients.Find(id);
+            return await _context.Clients.FindAsync(id);
         }
 
-        public ICollection<Client> GetAll()
+        public async Task<ICollection<Client>> GetAllAsync()
         {
-            return _context.Clients.ToList();
+            return await _context.Clients.ToListAsync();
         }
 
-        public void Add(Client item)
+        public async Task AddAsync(Client item)
         {
-            if (_context.Clients.Any(c => c.Equals(item)))
+            if (await _context.Clients.AnyAsync(c => c.Equals(item)))
             {
                 throw new InvalidOperationException("Клиент с таким паспортом уже существует.");
             }
 
             var defaultAccount = new Account(new Currency("USD", "Доллар США"), 0)
             {
-                ClientId = item.Id 
+                ClientId = item.Id
             };
 
             item.Accounts.Add(defaultAccount);
             
-            _context.Clients.Add(item);
-            _context.Accounts.Add(defaultAccount);
+            await _context.Clients.AddAsync(item);
+            await _context.Accounts.AddAsync(defaultAccount);
             
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
-        public void Update(Guid id, Client item)
+        public async Task UpdateAsync(Guid id, Client item)
         {
-            var existingClient = Get(id);
+            var existingClient = await GetAsync(id);
             if (existingClient == null)
             {
                 throw new KeyNotFoundException("Клиент не найден.");
@@ -54,14 +56,14 @@ namespace BankSystem.Data.Storages
             existingClient.LastName = item.LastName;
             existingClient.PhoneNumber = item.PhoneNumber;
             existingClient.BirthDay = item.BirthDay;
-            existingClient.Passport = item.Passport; 
+            existingClient.Passport = item.Passport;
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
-        public void Delete(Guid id)
+        public async Task DeleteAsync(Guid id)
         {
-            var existingClient = Get(id);
+            var existingClient = await GetAsync(id);
     
             if (existingClient == null)
             {
@@ -69,44 +71,41 @@ namespace BankSystem.Data.Storages
             }
             
             _context.Clients.Remove(existingClient);
-
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
-        
-        public ICollection<Client> GetByFilter(Func<Client, bool> filter)
+
+        public async Task<ICollection<Client>> GetByFilterAsync(Func<Client, bool> filter)
         {
-            return _context.Clients.AsQueryable()
+            return await Task.Run(() => _context.Clients.AsQueryable()
                 .Where(filter)
-                .ToList();
+                .ToList());
         }
 
-        public ICollection<Account> GetAccountsByClientId(Guid clientId)
+        public async Task<ICollection<Account>> GetAccountsByClientIdAsync(Guid clientId)
         {
-            return _context.Accounts
+            return await _context.Accounts
                 .Where(a => a.ClientId == clientId)
-                .ToList();
+                .ToListAsync();
         }
 
-        public void AddAccount(Guid clientId, Account account)
+        public async Task AddAccountAsync(Guid clientId, Account account)
         {
-            var client = Get(clientId);
+            var client = await GetAsync(clientId);
             if (client == null)
             {
                 throw new KeyNotFoundException("Клиент не найден.");
             }
 
             account.ClientId = clientId;
-
             client.Accounts.Add(account);
-            
-            _context.Accounts.Add(account);
-            _context.SaveChanges();
+
+            await _context.Accounts.AddAsync(account);
+            await _context.SaveChangesAsync();
         }
 
-
-        public void UpdateAccount(Account account)
+        public async Task UpdateAccountAsync(Account account)
         {
-            var existingAccount = _context.Accounts.FirstOrDefault(a => a.Id == account.Id);
+            var existingAccount = await _context.Accounts.FirstOrDefaultAsync(a => a.Id == account.Id);
     
             if (existingAccount == null)
             {
@@ -115,12 +114,12 @@ namespace BankSystem.Data.Storages
 
             existingAccount.Amount = account.Amount;
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
-        
-        public void DeleteAccount(Guid accountId)
+
+        public async Task DeleteAccountAsync(Guid accountId)
         {
-            var existingAccount = _context.Accounts.FirstOrDefault(a => a.Id == accountId);
+            var existingAccount = await _context.Accounts.FirstOrDefaultAsync(a => a.Id == accountId);
 
             if (existingAccount == null)
             {
@@ -128,20 +127,18 @@ namespace BankSystem.Data.Storages
             }
 
             _context.Accounts.Remove(existingAccount);
-
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
-        
-        public double GetAverageAgeClient()
+
+        public async Task<double> GetAverageAgeClientAsync()
         {
             var now = DateTime.Now;
-    
-            return _context.Clients.Any()
-                ? _context.Clients
+
+            return await _context.Clients.AnyAsync()
+                ? await _context.Clients
                     .Select(c => now.Year - c.BirthDay.Year - (now.DayOfYear < c.BirthDay.DayOfYear ? 1 : 0))
-                    .Average()
+                    .AverageAsync()
                 : 0;
         }
-
     }
 }

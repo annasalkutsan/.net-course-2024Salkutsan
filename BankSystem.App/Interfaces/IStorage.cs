@@ -2,10 +2,10 @@
 
 public interface IStorage<T>
 {
-    T Get(Guid id);
-    ICollection<T> GetAll(); 
-    ICollection<T> GetByFilter(Func<T, bool> filter);
-    void Add(T item);
-    void Update(Guid id, T item); 
-    void Delete(Guid id); 
+    Task<T> GetAsync(Guid id);
+    Task<ICollection<T>> GetAllAsync();
+    Task<ICollection<T>> GetByFilterAsync(Func<T, bool> filter);
+    Task AddAsync(T item);
+    Task UpdateAsync(Guid id, T item);
+    Task DeleteAsync(Guid id);
 }
