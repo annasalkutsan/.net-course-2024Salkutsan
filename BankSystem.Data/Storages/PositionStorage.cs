@@ -1,4 +1,5 @@
-﻿using BankSystem.App.Interfaces;
+﻿using System.Linq.Expressions;
+using BankSystem.App.Interfaces;
 using BankSystem.Data.EntityConfigurations;
 using BankSystem.Domain.Models;
 using Microsoft.EntityFrameworkCore;
@@ -24,9 +25,11 @@ namespace BankSystem.Data.Storages
             return await _context.Positions.ToListAsync();
         }
 
-        public async Task<ICollection<Position>> GetByFilterAsync(Func<Position, bool> filter)
+        public async Task<ICollection<Position>> GetByFilterAsync(Expression<Func<Position, bool>> filter)
         {
-            return await Task.Run(() => _context.Positions.AsQueryable().Where(filter).ToList());
+            return await _context.Positions
+                .Where(filter)
+                .ToListAsync();
         }
 
         public async Task AddAsync(Position item)

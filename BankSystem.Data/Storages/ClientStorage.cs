@@ -1,4 +1,5 @@
-﻿using BankSystem.App.Interfaces;
+﻿using System.Linq.Expressions;
+using BankSystem.App.Interfaces;
 using BankSystem.Data.EntityConfigurations;
 using BankSystem.Domain.Models;
 using Microsoft.EntityFrameworkCore;
@@ -74,11 +75,11 @@ namespace BankSystem.Data.Storages
             await _context.SaveChangesAsync();
         }
 
-        public async Task<ICollection<Client>> GetByFilterAsync(Func<Client, bool> filter)
+        public async Task<ICollection<Client>> GetByFilterAsync(Expression<Func<Client, bool>> filter)
         {
-            return await Task.Run(() => _context.Clients.AsQueryable()
+            return await _context.Clients
                 .Where(filter)
-                .ToList());
+                .ToListAsync();
         }
 
         public async Task<ICollection<Account>> GetAccountsByClientIdAsync(Guid clientId)

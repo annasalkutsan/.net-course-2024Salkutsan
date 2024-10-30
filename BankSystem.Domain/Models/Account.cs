@@ -59,7 +59,6 @@ public class Account
             }
             else
             {
-                Console.WriteLine($"Недостаточно средств на счете. Списание {amount} не выполнено.");
                 return false;
             }
         }

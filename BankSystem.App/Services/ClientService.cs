@@ -100,8 +100,8 @@ namespace BankSystem.App.Services
                 throw new PassportException();
             }
 
-            var clients = await _clientStorage.GetAllAsync();
-            if (clients.Any(c => c.Passport == client.Passport && c.Id != client.Id))
+            var existingClients = await _clientStorage.GetByFilterAsync(c => c.Passport == client.Passport && c.Id != client.Id);
+            if (existingClients.Any())
             {
                 throw new InvalidOperationException("Клиент с таким паспортом уже существует.");
             }
