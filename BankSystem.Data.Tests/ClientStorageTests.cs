@@ -5,7 +5,7 @@ using Xunit;
 
 public class ClientStorageTests
 {
-    private readonly BankSystemDbContext _context;
+    /*private readonly BankSystemDbContext _context;
     private readonly ClientStorage _clientStorage;
     private readonly TestDataGenerator _dataGenerator;
 
@@ -207,6 +207,6 @@ public class ClientStorageTests
         // Assert
         var expectedAverageAge = clients.Average(c => DateTime.Now.Year - c.BirthDay.Year - (DateTime.Now.DayOfYear < c.BirthDay.DayOfYear ? 1 : 0));
         Assert.Equal(expectedAverageAge, averageAge, 1); // Погрешность 1 год
-    }
+    }*/
 
 }

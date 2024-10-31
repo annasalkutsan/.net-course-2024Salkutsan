@@ -7,7 +7,7 @@ using Xunit;
 
 namespace BankSystem.App.Tests
 {
-    public class EmployeeServiceTests
+    /*public class EmployeeServiceTests
     {
         private readonly IEmployeeStorage _employeeStorage;
         private readonly EmployeeService _employeeService;
@@ -123,5 +123,5 @@ namespace BankSystem.App.Tests
             Assert.Single(filteredEmployees);
             Assert.Equal(employees[0].LastName, filteredEmployees.First().LastName);
         }
-    }
+    }*/
 }

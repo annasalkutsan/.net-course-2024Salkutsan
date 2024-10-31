@@ -1,63 +1,66 @@
-﻿using BankSystem.App.Interfaces;
+﻿using System.Linq.Expressions;
+using BankSystem.App.Interfaces;
 using BankSystem.Data.EntityConfigurations;
 using BankSystem.Domain.Models;
+using Microsoft.EntityFrameworkCore;
 
-namespace BankSystem.Data.Storages;
-
-public class PositionStorage: IStorage<Position>
+namespace BankSystem.Data.Storages
 {
-    private readonly BankSystemDbContext _context;
-
-    public PositionStorage(BankSystemDbContext context)
+    public class PositionStorage : IStorage<Position>
     {
-        _context = context;
-    }
+        private readonly BankSystemDbContext _context;
 
-    public Position Get(Guid id)
-    {
-        return _context.Positions.Find(id);
-    }
-
-    public ICollection<Position> GetAll()
-    {
-        return _context.Positions.ToList();
-    }
-
-    public ICollection<Position> GetByFilter(Func<Position, bool> filter)
-    {
-        return _context.Positions.AsQueryable()
-            .Where(filter)
-            .ToList();
-    }
-
-    public void Add(Position item)
-    {
-        _context.Positions.Add(item);
-        _context.SaveChanges();
-    }
-
-    public void Update(Guid id, Position item)
-    {
-        var existingPosition = Get(id);
-        if (existingPosition == null)
+        public PositionStorage(BankSystemDbContext context)
         {
-            throw new KeyNotFoundException("Должность не найдена.");
+            _context = context;
         }
 
-        existingPosition.Title = item.Title;
-
-        _context.SaveChanges();
-    }
-
-    public void Delete(Guid id)
-    {
-        var existingPosition = Get(id);
-        if (existingPosition == null)
+        public async Task<Position> GetAsync(Guid id)
         {
-            throw new KeyNotFoundException("Должность не найдена.");
+            return await _context.Positions.FindAsync(id);
         }
 
-        _context.Positions.Remove(existingPosition);
-        _context.SaveChanges();
+        public async Task<ICollection<Position>> GetAllAsync()
+        {
+            return await _context.Positions.ToListAsync();
+        }
+
+        public async Task<ICollection<Position>> GetByFilterAsync(Expression<Func<Position, bool>> filter)
+        {
+            return await _context.Positions
+                .Where(filter)
+                .ToListAsync();
+        }
+
+        public async Task AddAsync(Position item)
+        {
+            await _context.Positions.AddAsync(item);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateAsync(Guid id, Position item)
+        {
+            var existingPosition = await GetAsync(id);
+            if (existingPosition == null)
+            {
+                throw new KeyNotFoundException("Должность не найдена.");
+            }
+
+            existingPosition.Title = item.Title;
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteAsync(Guid id)
+        {
+            var existingPosition = await GetAsync(id);
+            if (existingPosition == null)
+            {
+                throw new KeyNotFoundException("Должность не найдена.");
+            }
+
+            _context.Positions.Remove(existingPosition);
+            await _context.SaveChangesAsync();
+        }
     }
 }
