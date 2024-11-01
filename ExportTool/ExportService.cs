@@ -6,7 +6,7 @@ using CsvHelper.TypeConversion;
 
 namespace ExportTool
 {
-    public class ExportService<T> where T : class
+    /*public class ExportService<T> where T : class
     {
         private readonly IStorage<T> _storage;
         private static readonly object _lock = new object();
@@ -222,5 +222,5 @@ namespace ExportTool
                 }
             }
         }
-    }
+    }*/
 }
