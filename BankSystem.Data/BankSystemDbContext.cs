@@ -12,6 +12,11 @@ public class BankSystemDbContext: DbContext
     public DbSet<Account> Accounts { get; set; }
     public DbSet<Client> Clients { get; set; }
 
+    public BankSystemDbContext(DbContextOptions<BankSystemDbContext> options)
+        : base(options)
+    {
+    }
+    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

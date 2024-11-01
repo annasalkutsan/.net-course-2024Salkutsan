@@ -74,7 +74,8 @@ namespace BankSystem.Data.Storages
         public async Task<ICollection<Employee>> GetByFilterAsync(Expression<Func<Employee, bool>> filter)
         {
             return await _context.Employees
-                .Where(filter)
+                .Include(e => e.Position) 
+                .Where(filter) 
                 .ToListAsync();
         }
     }

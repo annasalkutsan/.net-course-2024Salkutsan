@@ -48,18 +48,18 @@ namespace BankSystem.App.Services
         public async Task<ICollection<Employee>> GetEmployeesByFilterAsync(
             string lastName = null, 
             string phoneNumber = null, 
-            string positionName = null,
-            int pageNumber = 1, // номер страницы
-            int pageSize = 10)  // количество записей на странице
+            Guid? positionId = null,
+            int pageNumber = 1, 
+            int pageSize = 10)
         {
             var employees = await _employeeStorage.GetByFilterAsync(e =>
                 (string.IsNullOrWhiteSpace(lastName) || e.LastName.Contains(lastName, StringComparison.OrdinalIgnoreCase)) &&
                 (string.IsNullOrWhiteSpace(phoneNumber) || e.PhoneNumber.Contains(phoneNumber)) &&
-                (string.IsNullOrWhiteSpace(positionName) || (e.Position != null && e.Position.Title.Contains(positionName, StringComparison.OrdinalIgnoreCase))));
+                (!positionId.HasValue || e.PositionId == positionId));
 
-            // Пагинация
             return employees.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
         }
+
         
         private async Task ValidateEmployeeAsync(Employee employee)
         {
