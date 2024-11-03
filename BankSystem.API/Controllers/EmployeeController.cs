@@ -26,14 +26,6 @@ public class EmployeeController:ControllerBase
         var employeeDto = _mapper.Map<EmployeeResponseDto>(employee);
         return Ok(employeeDto);
     }
-
-    [HttpGet("all")]
-    public async Task<IActionResult> GetAllEmployees()
-    {
-        var employees = await _employeeService.GetAllEmployeesAsync();
-        var employeeDtos = _mapper.Map<IEnumerable<EmployeeResponseDto>>(employees);
-        return Ok(employeeDtos);
-    }
     
     [HttpPost("add")]
     public async Task<IActionResult> AddEmployee([FromBody] EmployeeRequestDto employeeRequestDto)

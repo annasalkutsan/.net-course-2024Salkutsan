@@ -26,15 +26,7 @@ namespace BankSystem.API.Controllers
             var clientDto = _mapper.Map<ClientResponseDto>(client);
             return Ok(clientDto);
         }
-
-        [HttpGet("all")]
-        public async Task<IActionResult> GetAllClients()
-        {
-            var clients = await _clientService.GetAllClientsAsync();
-            var clientDtos = _mapper.Map<IEnumerable<ClientResponseDto>>(clients);
-            return Ok(clientDtos);
-        }
-
+        
         [HttpPost("add")]
         public async Task<IActionResult> AddClient([FromBody] ClientRequestDto clientRequestDto)
         {
