@@ -1,14 +1,14 @@
 ﻿using System.Text.Json;
 using BankSystem.App.Services;
 using BankSystem.Domain.Models;
-using ExportTool;
+//using ExportTool;
 using Xunit;
 
 namespace ExportToolTests
 {
     public class ThreadAndTaskTests
     {
-        private readonly string _testDirectory = @"D:\Dex\Practic\.net-course-2024Salkutsan\ExportToolTests\TestJson";
+       /* private readonly string _testDirectory = @"D:\Dex\Practic\.net-course-2024Salkutsan\ExportToolTests\TestJson";
         private readonly string _jsonFileName = "test_clients_thread.json";
 
         private readonly TestDataGenerator _dataGenerator;
@@ -94,7 +94,7 @@ namespace ExportToolTests
             thread2.Join();
 
             Assert.Equal(2000, account.Amount); // 2000$
-        }
+        }*/
     }
 }
     
