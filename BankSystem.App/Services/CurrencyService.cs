@@ -1,4 +1,5 @@
-﻿using BankSystem.App.Dto;
+﻿using System.Text;
+using BankSystem.App.Dto;
 using Newtonsoft.Json;
 
 namespace BankSystem.App.Services;
@@ -13,17 +14,23 @@ public class CurrencyService
         _httpClient = httpClient;
     }
 
-    public async Task<decimal> ConvertCurrency(decimal amount, string fromCurrency, string toCurrency)
+    public async Task<decimal> ConvertCurrencyAsync(decimal amount, string fromCurrency, string toCurrency, CancellationToken cancellationToken)
     {
-        string requestUri = $"https://www.amdoren.com/api/currency.php?api_key={_apiKey}&from={fromCurrency}&to={toCurrency}&amount={amount}";
+        var requestUriBuilder = new StringBuilder("https://www.amdoren.com/api/currency.php?");
+        requestUriBuilder.Append("api_key=").Append(_apiKey)
+            .Append("&from=").Append(fromCurrency)
+            .Append("&to=").Append(toCurrency)
+            .Append("&amount=").Append(amount);
 
-        HttpResponseMessage response = await _httpClient.GetAsync(requestUri);
+        string requestUri = requestUriBuilder.ToString();
+
+        HttpResponseMessage response = await _httpClient.GetAsync(requestUri, cancellationToken);
 
         // успешность запроса
         response.EnsureSuccessStatusCode();
 
         // ответ от сервера
-        string responseBody = await response.Content.ReadAsStringAsync();
+        string responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
 
         var currencyResponse = JsonConvert.DeserializeObject<CurrencyApiResponse>(responseBody);
 

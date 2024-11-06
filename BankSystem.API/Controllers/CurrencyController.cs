@@ -19,7 +19,8 @@ public class CurrencyController : ControllerBase
     {
         try
         {
-            decimal convertedAmount = await _currencyService.ConvertCurrency(amount, from, to);
+            //HttpContext.RequestAborted вместео CancellationToken
+            decimal convertedAmount = await _currencyService.ConvertCurrencyAsync(amount, from, to, HttpContext.RequestAborted);
             return Ok(new { Amount = convertedAmount });
         }
         catch (Exception ex)
