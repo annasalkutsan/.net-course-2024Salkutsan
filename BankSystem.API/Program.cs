@@ -33,6 +33,8 @@ builder.Services.AddAutoMapper(typeof(EmployeeProfile));
 
 builder.Services.AddValidatorsFromAssemblyContaining<EmployeeRequestValidator>();
 
+builder.Services.AddHttpClient<CurrencyService>();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
